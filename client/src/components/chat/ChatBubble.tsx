@@ -1,12 +1,14 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { SoundWave } from "./SoundWave";
 
 interface ChatBubbleProps {
   message: string;
   isAI: boolean;
+  isSpeaking?: boolean;
 }
 
-export function ChatBubble({ message, isAI }: ChatBubbleProps) {
+export function ChatBubble({ message, isAI, isSpeaking = false }: ChatBubbleProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.9 }}
@@ -24,7 +26,10 @@ export function ChatBubble({ message, isAI }: ChatBubbleProps) {
           "0 0 20px rgba(16, 185, 129, 0.3)"
       }}
     >
-      <p className="text-sm md:text-base leading-relaxed">{message}</p>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm md:text-base leading-relaxed">{message}</p>
+        {isAI && <SoundWave isActive={isSpeaking} />}
+      </div>
     </motion.div>
   );
 }

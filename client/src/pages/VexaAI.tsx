@@ -27,6 +27,8 @@ export default function VexaAI() {
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [speechRate, setSpeechRate] = useState(1);
   const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false);
+  // Add this to the state declarations
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
     const loadVoices = () => {
@@ -123,6 +125,7 @@ export default function VexaAI() {
     }
   };
 
+  // Modify the startVoiceResponse function
   const startVoiceResponse = (text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = speechRate;
@@ -131,6 +134,9 @@ export default function VexaAI() {
     if (voice) {
       utterance.voice = voice;
     }
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
 
     window.speechSynthesis.speak(utterance);
   };
@@ -185,7 +191,8 @@ export default function VexaAI() {
     >
       <Card className="max-w-4xl mx-auto bg-background/40 backdrop-blur-md border-primary/20">
         <div className="h-[70vh] overflow-y-auto">
-          <ChatMessage messages={messages} />
+          {/* Update the ChatMessage component usage in the return statement */}
+          <ChatMessage messages={messages} isSpeaking={isSpeaking} />
         </div>
 
         <div className="p-4 border-t border-primary/20 bg-background/60 backdrop-blur-sm">

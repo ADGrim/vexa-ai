@@ -8,9 +8,10 @@ interface Message {
 
 interface ChatMessageProps {
   messages: Message[];
+  isSpeaking: boolean;
 }
 
-export function ChatMessage({ messages }: ChatMessageProps) {
+export function ChatMessage({ messages, isSpeaking }: ChatMessageProps) {
   return (
     <motion.div 
       className="flex flex-col space-y-4 p-4"
@@ -31,6 +32,7 @@ export function ChatMessage({ messages }: ChatMessageProps) {
           key={index}
           message={msg.text}
           isAI={msg.sender === "ai"}
+          isSpeaking={msg.sender === "ai" && isSpeaking}
         />
       ))}
     </motion.div>
