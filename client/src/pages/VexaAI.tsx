@@ -3,8 +3,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessage } from "@/components/chat/ChatMessage";
-import { FloatingControls } from "@/components/controls/FloatingControls";
-import { TaskList } from "@/components/tasks/TaskList";
 import { motion } from "framer-motion";
 import { Send } from "lucide-react";
 import OpenAI from "openai";
@@ -15,64 +13,20 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
-// Add type declarations for the Web Speech API
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-  }
-}
-
 export default function VexaAI() {
   const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
   const [input, setInput] = useState("");
-  const [memory, setMemory] = useState<Array<{ role: string; content: string }>>([]);
-  const [tasks, setTasks] = useState<string[]>([]);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
-  const [speechRate, setSpeechRate] = useState(1);
-  const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-
-  useEffect(() => {
-    const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      setVoices(availableVoices);
-      if (availableVoices.length > 0) {
-        setSelectedVoice(availableVoices[0].name);
-      }
-    };
-
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-  }, []);
-
-  useEffect(() => {
-    if (voiceRecognitionActive) {
-      startVoiceRecognition();
-    }
-  }, [voiceRecognitionActive]);
-
-  useEffect(() => {
-    loadTasks();
-  }, []);
 
   const fetchAIResponse = async (userInput: string) => {
     try {
-      const fullContext = [...memory, { role: "user", content: userInput }];
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
-        messages: fullContext.map(msg => ({
-          role: msg.role as "user" | "assistant" | "system",
-          content: msg.content
-        }))
+        messages: [{ role: "user", content: userInput }]
       });
 
       const aiResponse = response.choices[0].message.content;
       if (!aiResponse) throw new Error("Empty response from AI");
-
-      setMemory([...fullContext, { role: "assistant", content: aiResponse }]);
-      startVoiceResponse(aiResponse);
       return aiResponse;
     } catch (error) {
       console.error("Error fetching AI response:", error);
@@ -90,88 +44,29 @@ export default function VexaAI() {
     try {
       const aiResponse = await fetchAIResponse(input);
       setMessages((prev) => [...prev, { text: aiResponse, sender: "ai" as const }]);
+      setIsSpeaking(true);
+      setTimeout(() => setIsSpeaking(false), 2000); // Simulate speaking for particle effect
     } catch (error) {
       console.error("Error processing message:", error);
     }
   };
 
-  const startVoiceResponse = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = speechRate;
-
-    const voice = voices.find((v) => v.name === selectedVoice);
-    if (voice) {
-      utterance.voice = voice;
-    }
-
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-
-    window.speechSynthesis.speak(utterance);
-  };
-
-  const startVoiceRecognition = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      console.error("Speech recognition not supported");
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
-
-    recognition.onresult = async (event: SpeechRecognitionEvent) => {
-      const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
-      if (transcript.includes("vexa") || transcript.includes("veksa") || transcript.includes("vexa ai")) {
-        try {
-          const aiResponse = await fetchAIResponse("Hey Vexa");
-          startVoiceResponse(aiResponse);
-        } catch (error) {
-          console.error("Error processing voice command:", error);
-        }
-      }
-    };
-
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error("Speech recognition error:", event.error);
-    };
-
-    recognition.start();
-  };
-
-  const addTask = (task: string) => {
-    const newTasks = [...tasks, task];
-    setTasks(newTasks);
-    localStorage.setItem("tasks", JSON.stringify(newTasks));
-  };
-
-  const loadTasks = () => {
-    const savedTasks = JSON.parse(localStorage.getItem("tasks") || "[]");
-    setTasks(savedTasks);
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen bg-gradient-to-b from-background to-background/80 p-4"
-    >
-      <Card className="max-w-4xl mx-auto bg-background/40 backdrop-blur-md border-primary/20">
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/80 p-4">
+      <Card className="max-w-4xl mx-auto mt-8 bg-background/40 backdrop-blur-md border-primary/20">
         {/* Chat Messages Area */}
-        <div className="h-[70vh] overflow-y-auto">
+        <div className="h-[60vh] overflow-y-auto p-4">
           <ChatMessage messages={messages} isSpeaking={isSpeaking} />
         </div>
 
         {/* Message Input Area */}
-        <div className="p-4 border-t border-primary/20 bg-background/60 backdrop-blur-sm">
+        <div className="p-4 bg-background/60 backdrop-blur-sm border-t border-primary/20">
           <div className="flex gap-2 items-end">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message here and press Enter to send..."
-              className="bg-background/50 border-primary/20 min-h-[60px] text-base"
+              placeholder="Type your message here..."
+              className="min-h-[60px] text-base bg-background/50 border-primary/20 resize-none"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -180,27 +75,15 @@ export default function VexaAI() {
               }}
             />
             <Button 
-              onClick={sendMessage} 
-              className="bg-primary hover:bg-primary/90 h-[60px] px-6"
+              onClick={sendMessage}
               size="icon"
+              className="h-[60px] w-[60px] bg-primary hover:bg-primary/90"
             >
               <Send className="h-5 w-5" />
             </Button>
           </div>
         </div>
-
-        <TaskList tasks={tasks} onAddTask={addTask} />
       </Card>
-
-      <FloatingControls
-        voices={voices}
-        selectedVoice={selectedVoice}
-        onVoiceChange={setSelectedVoice}
-        speechRate={speechRate}
-        onSpeechRateChange={setSpeechRate}
-        voiceRecognitionActive={voiceRecognitionActive}
-        onVoiceRecognitionToggle={() => setVoiceRecognitionActive(!voiceRecognitionActive)}
-      />
-    </motion.div>
+    </div>
   );
 }
