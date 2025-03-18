@@ -2,14 +2,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-
-interface Voice {
-  name: string;
-  lang: string;
-}
+import { Button } from "@/components/ui/button";
+import { Volume2 } from "lucide-react";
 
 interface VoiceSelectorProps {
-  voices: Voice[];
+  voices: SpeechSynthesisVoice[];
   selectedVoice: string | null;
   onVoiceChange: (voice: string) => void;
   pitch: number;
@@ -27,23 +24,46 @@ export function VoiceSelector({
   rate,
   onRateChange,
 }: VoiceSelectorProps) {
+  const testVoice = () => {
+    const utterance = new SpeechSynthesisUtterance("This is a test of the selected voice");
+    utterance.pitch = pitch;
+    utterance.rate = rate;
+
+    const voice = voices.find(v => v.name === selectedVoice);
+    if (voice) {
+      utterance.voice = voice;
+    }
+
+    window.speechSynthesis.speak(utterance);
+  };
+
   return (
     <Card className="p-4 bg-background/40 backdrop-blur-sm border-primary/20">
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label>Voice</Label>
-          <Select value={selectedVoice || undefined} onValueChange={onVoiceChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a voice" />
-            </SelectTrigger>
-            <SelectContent>
-              {voices.map((voice) => (
-                <SelectItem key={voice.name} value={voice.name}>
-                  {`${voice.name} (${voice.lang})`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex items-end gap-2">
+          <div className="flex-1 space-y-2">
+            <Label>Voice</Label>
+            <Select value={selectedVoice || undefined} onValueChange={onVoiceChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a voice" />
+              </SelectTrigger>
+              <SelectContent>
+                {voices.map((voice) => (
+                  <SelectItem key={voice.name} value={voice.name}>
+                    {`${voice.name} (${voice.lang})`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={testVoice}
+            className="h-10 w-10"
+          >
+            <Volume2 className="h-4 w-4" />
+          </Button>
         </div>
 
         <div className="space-y-2">

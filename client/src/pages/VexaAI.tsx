@@ -29,14 +29,27 @@ export default function VexaAI() {
     // Load available voices
     const loadVoices = () => {
       const availableVoices = window.speechSynthesis.getVoices();
-      setVoices(availableVoices);
       if (availableVoices.length > 0) {
-        setSelectedVoice(availableVoices[0].name);
+        console.log("Available voices:", availableVoices.map(v => v.name));
+        setVoices(availableVoices);
+        // Prefer English voices
+        const englishVoice = availableVoices.find(v => v.lang.startsWith('en-'));
+        setSelectedVoice(englishVoice?.name || availableVoices[0].name);
+
+        // Test speech synthesis
+        const testUtterance = new SpeechSynthesisUtterance("Hello");
+        testUtterance.volume = 0.1; // Very quiet test
+        window.speechSynthesis.speak(testUtterance);
       }
     };
 
+    // Initial load
     loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    // Chrome needs this event
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
 
     // Clean up
     return () => {
@@ -61,6 +74,12 @@ export default function VexaAI() {
   };
 
   const speakText = (text: string) => {
+    // Make sure speech synthesis is supported
+    if (!window.speechSynthesis) {
+      console.error("Speech synthesis not supported");
+      return;
+    }
+
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
 
@@ -69,10 +88,14 @@ export default function VexaAI() {
     // Apply voice settings
     utterance.pitch = pitch;
     utterance.rate = rate;
+    utterance.volume = 1; // Ensure full volume for actual messages
 
     const voice = voices.find(v => v.name === selectedVoice);
     if (voice) {
+      console.log("Using voice:", voice.name);
       utterance.voice = voice;
+    } else {
+      console.warn("Selected voice not found");
     }
 
     utterance.onstart = () => {
@@ -89,6 +112,11 @@ export default function VexaAI() {
       console.error("Speech synthesis error:", event);
       setIsSpeaking(false);
     };
+
+    // Force resume if synthesis is paused
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
 
     window.speechSynthesis.speak(utterance);
   };
