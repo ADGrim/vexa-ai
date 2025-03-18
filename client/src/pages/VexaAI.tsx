@@ -6,6 +6,7 @@ import { ChatMessage } from "@/components/chat/ChatMessage";
 import { FloatingControls } from "@/components/controls/FloatingControls";
 import { TaskList } from "@/components/tasks/TaskList";
 import { motion } from "framer-motion";
+import { Send } from "lucide-react";
 import OpenAI from "openai";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
@@ -158,17 +159,19 @@ export default function VexaAI() {
       className="min-h-screen bg-gradient-to-b from-background to-background/80 p-4"
     >
       <Card className="max-w-4xl mx-auto bg-background/40 backdrop-blur-md border-primary/20">
+        {/* Chat Messages Area */}
         <div className="h-[70vh] overflow-y-auto">
           <ChatMessage messages={messages} isSpeaking={isSpeaking} />
         </div>
 
+        {/* Message Input Area */}
         <div className="p-4 border-t border-primary/20 bg-background/60 backdrop-blur-sm">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-end">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
-              className="bg-background/50 border-primary/20"
+              placeholder="Type your message here and press Enter to send..."
+              className="bg-background/50 border-primary/20 min-h-[60px] text-base"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -176,8 +179,12 @@ export default function VexaAI() {
                 }
               }}
             />
-            <Button onClick={sendMessage} className="bg-primary hover:bg-primary/90">
-              Send
+            <Button 
+              onClick={sendMessage} 
+              className="bg-primary hover:bg-primary/90 h-[60px] px-6"
+              size="icon"
+            >
+              <Send className="h-5 w-5" />
             </Button>
           </div>
         </div>
