@@ -42,7 +42,7 @@ export function ChatBubble({ message, isAI, isSpeaking = false }: ChatBubbleProp
         <p className="text-sm md:text-base leading-relaxed">{message}</p>
         {isAI && <SoundWave isActive={isSpeaking} />}
       </div>
-      {isAI && <ParticleEffect isActive={showParticles} />}
+      <ParticleEffect isActive={showParticles} />
     </motion.div>
   );
 }

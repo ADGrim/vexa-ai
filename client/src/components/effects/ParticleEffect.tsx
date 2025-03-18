@@ -7,6 +7,7 @@ interface Particle {
   y: number;
   initialX: number;
   initialY: number;
+  scale: number;
 }
 
 interface ParticleEffectProps {
@@ -18,13 +19,13 @@ export function ParticleEffect({ isActive }: ParticleEffectProps) {
 
   useEffect(() => {
     if (isActive) {
-      // Create more particles and spread them out more
-      const newParticles = Array.from({ length: 20 }).map((_, index) => ({
+      const newParticles = Array.from({ length: 30 }).map((_, index) => ({
         id: index,
         x: 0,
         y: 0,
-        initialX: (Math.random() * 200 - 100) * (Math.random() > 0.5 ? 1 : -1),
-        initialY: (Math.random() * 200 - 100) * (Math.random() > 0.5 ? 1 : -1),
+        initialX: (Math.random() * 300 - 150) * (Math.random() > 0.5 ? 1 : -1),
+        initialY: (Math.random() * 300 - 150) * (Math.random() > 0.5 ? 1 : -1),
+        scale: Math.random() * 2 + 1,
       }));
       setParticles(newParticles);
     } else {
@@ -33,11 +34,11 @@ export function ParticleEffect({ isActive }: ParticleEffectProps) {
   }, [isActive]);
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-visible z-50">
+    <div className="absolute inset-0 pointer-events-none z-50">
       {particles.map((particle) => (
         <motion.div
           key={particle.id}
-          className="absolute w-1.5 h-1.5 rounded-full bg-primary"
+          className="absolute w-2 h-2 rounded-full bg-primary/80"
           initial={{ 
             x: 0, 
             y: 0, 
@@ -48,16 +49,17 @@ export function ParticleEffect({ isActive }: ParticleEffectProps) {
             x: particle.initialX,
             y: particle.initialY,
             opacity: 0,
-            scale: 2
+            scale: particle.scale
           }}
           transition={{ 
-            duration: 1.5,
-            ease: "easeOut"
+            duration: 2,
+            ease: [0.32, 0, 0.67, 0]
           }}
           style={{
             left: "50%",
             top: "50%",
-            transform: "translate(-50%, -50%)"
+            transform: "translate(-50%, -50%)",
+            boxShadow: "0 0 8px var(--primary)"
           }}
         />
       ))}
