@@ -37,6 +37,11 @@ export default function VexaAI() {
 
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    // Clean up
+    return () => {
+      window.speechSynthesis.cancel();
+    };
   }, []);
 
   const fetchAIResponse = async (userInput: string) => {
@@ -56,6 +61,9 @@ export default function VexaAI() {
   };
 
   const speakText = (text: string) => {
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
 
     // Apply voice settings
@@ -67,8 +75,20 @@ export default function VexaAI() {
       utterance.voice = voice;
     }
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
+    utterance.onstart = () => {
+      console.log("Speech started");
+      setIsSpeaking(true);
+    };
+
+    utterance.onend = () => {
+      console.log("Speech ended");
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = (event) => {
+      console.error("Speech synthesis error:", event);
+      setIsSpeaking(false);
+    };
 
     window.speechSynthesis.speak(utterance);
   };
