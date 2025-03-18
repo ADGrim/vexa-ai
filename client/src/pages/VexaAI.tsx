@@ -6,9 +6,13 @@ import { ChatMessage } from "@/components/chat/ChatMessage";
 import { FloatingControls } from "@/components/controls/FloatingControls";
 import { TaskList } from "@/components/tasks/TaskList";
 import { motion } from "framer-motion";
+import OpenAI from "openai";
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || "";
-const SERP_API_KEY = import.meta.env.VITE_SERP_API_KEY || "";
+// the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+const openai = new OpenAI({
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true
+});
 
 // Add type declarations for the Web Speech API
 declare global {
@@ -27,7 +31,6 @@ export default function VexaAI() {
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [speechRate, setSpeechRate] = useState(1);
   const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false);
-  // Add this to the state declarations
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
@@ -56,49 +59,22 @@ export default function VexaAI() {
   const fetchAIResponse = async (userInput: string) => {
     try {
       const fullContext = [...memory, { role: "user", content: userInput }];
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4",
-          messages: fullContext,
-        }),
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: fullContext.map(msg => ({
+          role: msg.role as "user" | "assistant" | "system",
+          content: msg.content
+        }))
       });
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`);
-      }
+      const aiResponse = response.choices[0].message.content;
+      if (!aiResponse) throw new Error("Empty response from AI");
 
-      const data = await response.json();
-      const aiResponse = data.choices[0].message.content;
       setMemory([...fullContext, { role: "assistant", content: aiResponse }]);
       startVoiceResponse(aiResponse);
       return aiResponse;
     } catch (error) {
       console.error("Error fetching AI response:", error);
-      throw error;
-    }
-  };
-
-  const performWebSearch = async (query: string) => {
-    try {
-      const response = await fetch(
-        `https://serpapi.com/search.json?q=${encodeURIComponent(query)}&api_key=${SERP_API_KEY}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`Web search failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.organic_results
-        ? data.organic_results.slice(0, 3).map((r: any) => r.snippet).join("\n")
-        : "No relevant results found.";
-    } catch (error) {
-      console.error("Error performing web search:", error);
       throw error;
     }
   };
@@ -111,21 +87,13 @@ export default function VexaAI() {
     setInput("");
 
     try {
-      let aiResponse = "";
-      if (input.toLowerCase().includes("search for")) {
-        const query = input.replace(/search for/i, "").trim();
-        aiResponse = await performWebSearch(query);
-      } else {
-        aiResponse = await fetchAIResponse(input);
-      }
-
+      const aiResponse = await fetchAIResponse(input);
       setMessages((prev) => [...prev, { text: aiResponse, sender: "ai" as const }]);
     } catch (error) {
       console.error("Error processing message:", error);
     }
   };
 
-  // Modify the startVoiceResponse function
   const startVoiceResponse = (text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = speechRate;
@@ -191,7 +159,6 @@ export default function VexaAI() {
     >
       <Card className="max-w-4xl mx-auto bg-background/40 backdrop-blur-md border-primary/20">
         <div className="h-[70vh] overflow-y-auto">
-          {/* Update the ChatMessage component usage in the return statement */}
           <ChatMessage messages={messages} isSpeaking={isSpeaking} />
         </div>
 
