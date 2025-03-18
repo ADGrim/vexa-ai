@@ -16,7 +16,7 @@ export function ChatBubble({ message, isAI, isSpeaking = false }: ChatBubbleProp
   useEffect(() => {
     if (isAI) {
       setShowParticles(true);
-      const timer = setTimeout(() => setShowParticles(false), 1000);
+      const timer = setTimeout(() => setShowParticles(false), 1500);
       return () => clearTimeout(timer);
     }
   }, [isAI]);
@@ -27,7 +27,7 @@ export function ChatBubble({ message, isAI, isSpeaking = false }: ChatBubbleProp
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.3 }}
       className={cn(
-        "rounded-full px-6 py-3 max-w-[80%] shadow-lg backdrop-blur-sm relative",
+        "rounded-full px-6 py-3 max-w-[80%] shadow-lg backdrop-blur-sm relative overflow-visible",
         isAI ? 
           "bg-gradient-to-r from-blue-600/90 to-purple-600/90 text-white ml-2" :
           "bg-gradient-to-r from-emerald-500/90 to-teal-500/90 text-white ml-auto mr-2"
