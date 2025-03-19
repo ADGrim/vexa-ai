@@ -55,8 +55,13 @@ export default function VexaAI() {
     }
 
     try {
-      console.log("Starting voice synthesis...");
+      console.log("Starting voice synthesis with voice:", selectedVoice);
       setIsSpeaking(true);
+
+      // Ensure the text is not empty
+      if (!text.trim()) {
+        throw new Error("Empty text provided for voice synthesis");
+      }
 
       const response = await fetch("https://api.openai.com/v1/audio/speech", {
         method: "POST",
@@ -69,11 +74,17 @@ export default function VexaAI() {
           input: text,
           voice: selectedVoice,
           speed: rate,
+          response_format: "mp3",
         }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error("OpenAI API Error:", {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText
+        });
         throw new Error(`Speech synthesis failed: ${response.status} - ${errorText}`);
       }
 
@@ -114,7 +125,7 @@ export default function VexaAI() {
       toast({
         variant: "destructive",
         title: "Voice Synthesis Error",
-        description: "Failed to generate voice response. Please try again."
+        description: error instanceof Error ? error.message : "Failed to generate voice response. Please check your API key and try again."
       });
     }
   };
