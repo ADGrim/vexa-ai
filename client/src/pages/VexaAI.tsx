@@ -18,44 +18,9 @@ export default function VexaAI() {
   const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
   const [input, setInput] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
-
-  // Voice control states
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
+  const [selectedVoice, setSelectedVoice] = useState<"nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer">("nova");
   const [pitch, setPitch] = useState(1);
   const [rate, setRate] = useState(1);
-
-  useEffect(() => {
-    // Load available voices
-    const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      if (availableVoices.length > 0) {
-        console.log("Available voices:", availableVoices.map(v => v.name));
-        setVoices(availableVoices);
-        // Prefer English voices
-        const englishVoice = availableVoices.find(v => v.lang.startsWith('en-'));
-        setSelectedVoice(englishVoice?.name || availableVoices[0].name);
-
-        // Test speech synthesis
-        const testUtterance = new SpeechSynthesisUtterance("Hello");
-        testUtterance.volume = 0.1; // Very quiet test
-        window.speechSynthesis.speak(testUtterance);
-      }
-    };
-
-    // Initial load
-    loadVoices();
-
-    // Chrome needs this event
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
-
-    // Clean up
-    return () => {
-      window.speechSynthesis.cancel();
-    };
-  }, []);
 
   const fetchAIResponse = async (userInput: string) => {
     try {
@@ -73,52 +38,41 @@ export default function VexaAI() {
     }
   };
 
-  const speakText = (text: string) => {
-    // Make sure speech synthesis is supported
-    if (!window.speechSynthesis) {
-      console.error("Speech synthesis not supported");
-      return;
-    }
-
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    // Apply voice settings
-    utterance.pitch = pitch;
-    utterance.rate = rate;
-    utterance.volume = 1; // Ensure full volume for actual messages
-
-    const voice = voices.find(v => v.name === selectedVoice);
-    if (voice) {
-      console.log("Using voice:", voice.name);
-      utterance.voice = voice;
-    } else {
-      console.warn("Selected voice not found");
-    }
-
-    utterance.onstart = () => {
-      console.log("Speech started");
+  const startHumanlikeVoiceResponse = async (text: string) => {
+    try {
       setIsSpeaking(true);
-    };
+      const response = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "tts-1-hd",
+          input: text,
+          voice: selectedVoice,
+          speed: rate,
+        }),
+      });
 
-    utterance.onend = () => {
-      console.log("Speech ended");
+      if (!response.ok) {
+        throw new Error(`Speech synthesis failed: ${response.statusText}`);
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      await audio.play();
+    } catch (error) {
+      console.error("Error generating speech:", error);
       setIsSpeaking(false);
-    };
-
-    utterance.onerror = (event) => {
-      console.error("Speech synthesis error:", event);
-      setIsSpeaking(false);
-    };
-
-    // Force resume if synthesis is paused
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
     }
-
-    window.speechSynthesis.speak(utterance);
   };
 
   const sendMessage = async () => {
@@ -131,7 +85,7 @@ export default function VexaAI() {
     try {
       const aiResponse = await fetchAIResponse(input);
       setMessages((prev) => [...prev, { text: aiResponse, sender: "ai" as const }]);
-      speakText(aiResponse);
+      await startHumanlikeVoiceResponse(aiResponse);
     } catch (error) {
       console.error("Error processing message:", error);
     }
@@ -174,11 +128,8 @@ export default function VexaAI() {
 
         {/* Voice Controls */}
         <VoiceSelector
-          voices={voices}
           selectedVoice={selectedVoice}
           onVoiceChange={setSelectedVoice}
-          pitch={pitch}
-          onPitchChange={setPitch}
           rate={rate}
           onRateChange={setRate}
         />
