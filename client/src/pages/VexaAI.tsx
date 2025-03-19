@@ -6,6 +6,7 @@ import { ChatMessage } from "@/components/chat/ChatMessage";
 import { VoiceSelector } from "@/components/controls/VoiceSelector";
 import { motion } from "framer-motion";
 import { Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
@@ -19,8 +20,8 @@ export default function VexaAI() {
   const [input, setInput] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState<"nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer">("nova");
-  const [pitch, setPitch] = useState(1);
   const [rate, setRate] = useState(1);
+  const { toast } = useToast();
 
   const fetchAIResponse = async (userInput: string) => {
     try {
@@ -34,13 +35,29 @@ export default function VexaAI() {
       return aiResponse;
     } catch (error) {
       console.error("Error fetching AI response:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to get AI response. Please try again."
+      });
       throw error;
     }
   };
 
   const startHumanlikeVoiceResponse = async (text: string) => {
+    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+      toast({
+        variant: "destructive",
+        title: "API Key Missing",
+        description: "Please provide your OpenAI API key to enable voice responses."
+      });
+      return;
+    }
+
     try {
+      console.log("Starting voice synthesis...");
       setIsSpeaking(true);
+
       const response = await fetch("https://api.openai.com/v1/audio/speech", {
         method: "POST",
         headers: {
@@ -56,23 +73,55 @@ export default function VexaAI() {
       });
 
       if (!response.ok) {
-        throw new Error(`Speech synthesis failed: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Speech synthesis failed: ${response.status} - ${errorText}`);
       }
 
+      console.log("Received audio response, creating blob...");
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
 
+      audio.onloadeddata = () => {
+        console.log("Audio loaded, starting playback...");
+      };
+
+      audio.onplay = () => {
+        console.log("Audio playback started");
+      };
+
       audio.onended = () => {
+        console.log("Audio playback ended");
         setIsSpeaking(false);
         URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", e);
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+        toast({
+          variant: "destructive",
+          title: "Playback Error",
+          description: "Failed to play audio response. Please try again."
+        });
       };
 
       await audio.play();
     } catch (error) {
       console.error("Error generating speech:", error);
       setIsSpeaking(false);
+      toast({
+        variant: "destructive",
+        title: "Voice Synthesis Error",
+        description: "Failed to generate voice response. Please try again."
+      });
     }
+  };
+
+  const testVoice = async () => {
+    const testMessage = "This is a test of the voice synthesis system.";
+    await startHumanlikeVoiceResponse(testMessage);
   };
 
   const sendMessage = async () => {
@@ -132,6 +181,7 @@ export default function VexaAI() {
           onVoiceChange={setSelectedVoice}
           rate={rate}
           onRateChange={setRate}
+          onTest={testVoice}
         />
       </div>
     </div>
