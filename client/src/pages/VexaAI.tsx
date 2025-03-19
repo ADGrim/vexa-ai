@@ -15,6 +15,13 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
+interface AudioState {
+  context: AudioContext | null;
+  analyser: AnalyserNode | null;
+  audio: HTMLAudioElement | null;
+  animationFrame: number | null;
+}
+
 export default function VexaAI() {
   const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
   const [input, setInput] = useState("");
@@ -23,32 +30,57 @@ export default function VexaAI() {
   const [rate, setRate] = useState(1);
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioStateRef = useRef<AudioState>({
+    context: null,
+    analyser: null,
+    audio: null,
+    animationFrame: null
+  });
 
   // Cleanup audio resources on unmount
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-      }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
+      cleanupAudio();
     };
   }, []);
 
+  const cleanupAudio = () => {
+    const { audio, context, animationFrame } = audioStateRef.current;
+
+    if (audio) {
+      audio.pause();
+      audio.src = "";
+    }
+
+    if (context?.state !== 'closed') {
+      context?.close();
+    }
+
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+
+    audioStateRef.current = {
+      context: null,
+      analyser: null,
+      audio: null,
+      animationFrame: null
+    };
+
+    setIsSpeaking(false);
+  };
+
   const setupAudioContext = () => {
     try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      if (!audioStateRef.current.context) {
+        audioStateRef.current.context = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-      if (!analyserRef.current) {
-        analyserRef.current = audioContextRef.current.createAnalyser();
-        analyserRef.current.fftSize = 256;
+
+      if (!audioStateRef.current.analyser) {
+        audioStateRef.current.analyser = audioStateRef.current.context.createAnalyser();
+        audioStateRef.current.analyser.fftSize = 256;
       }
+
       return true;
     } catch (error) {
       console.error("Failed to setup audio context:", error);
@@ -57,20 +89,27 @@ export default function VexaAI() {
   };
 
   const visualizeAudio = () => {
-    if (!canvasRef.current || !analyserRef.current) return;
+    const { analyser } = audioStateRef.current;
+    if (!canvasRef.current || !analyser) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const bufferLength = analyserRef.current.frequencyBinCount;
+    const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
     const draw = () => {
-      if (!isSpeaking) return;
-      requestAnimationFrame(draw);
+      if (!isSpeaking) {
+        if (audioStateRef.current.animationFrame) {
+          cancelAnimationFrame(audioStateRef.current.animationFrame);
+          audioStateRef.current.animationFrame = null;
+        }
+        return;
+      }
 
-      analyserRef.current!.getByteFrequencyData(dataArray);
+      audioStateRef.current.animationFrame = requestAnimationFrame(draw);
+      analyser.getByteFrequencyData(dataArray);
 
       ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -97,12 +136,7 @@ export default function VexaAI() {
 
   const fetchAIResponse = async (userInput: string) => {
     if (!import.meta.env.VITE_OPENAI_API_KEY) {
-      toast({
-        variant: "destructive",
-        title: "API Key Missing",
-        description: "Please provide your OpenAI API key to continue."
-      });
-      return null;
+      throw new Error("OpenAI API key is required");
     }
 
     try {
@@ -113,32 +147,26 @@ export default function VexaAI() {
         max_tokens: 150
       });
 
+      if (!response.choices?.[0]?.message?.content) {
+        throw new Error("Invalid response from OpenAI");
+      }
+
       return response.choices[0].message.content;
     } catch (error: any) {
       console.error("OpenAI API Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.error?.message || "Failed to get AI response. Please try again."
-      });
-      return null;
+      throw error;
     }
   };
 
   const speakText = async (text: string) => {
     try {
-      console.log("Starting TTS with:", { text, voice: selectedVoice, rate });
-
-      // Clean up previous audio
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-      }
+      cleanupAudio();
 
       if (!setupAudioContext()) {
         throw new Error("Failed to initialize audio context");
       }
 
+      console.log("Starting TTS with:", { text, voice: selectedVoice, rate });
       setIsSpeaking(true);
 
       const response = await fetch("https://api.openai.com/v1/audio/speech", {
@@ -165,12 +193,12 @@ export default function VexaAI() {
       const audioUrl = URL.createObjectURL(audioBlob);
 
       const audio = new Audio(audioUrl);
-      audioRef.current = audio;
+      audioStateRef.current.audio = audio;
 
       // Set up audio pipeline
-      const source = audioContextRef.current!.createMediaElementSource(audio);
-      source.connect(analyserRef.current!);
-      analyserRef.current!.connect(audioContextRef.current!.destination);
+      const source = audioStateRef.current.context!.createMediaElementSource(audio);
+      source.connect(audioStateRef.current.analyser!);
+      audioStateRef.current.analyser!.connect(audioStateRef.current.context!.destination);
 
       audio.onplay = () => {
         console.log("Audio playback started");
@@ -183,21 +211,43 @@ export default function VexaAI() {
         URL.revokeObjectURL(audioUrl);
       };
 
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", e);
+        throw new Error("Audio playback failed");
+      };
+
       await audio.play();
     } catch (error) {
       console.error("Speech synthesis error:", error);
       setIsSpeaking(false);
-      toast({
-        variant: "destructive",
-        title: "Voice Synthesis Error",
-        description: error instanceof Error ? error.message : "Failed to generate voice response"
-      });
+
+      if (error instanceof Error) {
+        toast({
+          variant: "destructive",
+          title: "Voice Synthesis Error",
+          description: error.message
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Voice Synthesis Error",
+          description: "Failed to generate voice response"
+        });
+      }
     }
   };
 
   const testVoice = async () => {
-    const testMessage = `This is a test of the ${selectedVoice} voice.`;
-    await speakText(testMessage);
+    try {
+      const testMessage = `This is a test of the ${selectedVoice} voice.`;
+      await speakText(testMessage);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Voice Test Failed",
+        description: error instanceof Error ? error.message : "Failed to test voice"
+      });
+    }
   };
 
   const sendMessage = async () => {
@@ -207,11 +257,17 @@ export default function VexaAI() {
     setMessages((prev) => [...prev, newMessage]);
     setInput("");
 
-    const aiResponse = await fetchAIResponse(input);
-    if (aiResponse) {
+    try {
+      const aiResponse = await fetchAIResponse(input);
       const aiMessage = { text: aiResponse, sender: "ai" as const };
       setMessages((prev) => [...prev, aiMessage]);
       await speakText(aiResponse);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
     }
   };
 
