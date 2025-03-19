@@ -15,6 +15,9 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
+// Cost calculation constants
+const TTS_COST_PER_1K_CHARS = 0.015; // $0.015 per 1K characters
+
 export default function VexaAI() {
   const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
   const [input, setInput] = useState("");
@@ -50,6 +53,11 @@ export default function VexaAI() {
       cleanupAudio();
     };
   }, []);
+
+  const calculateTTSCost = (text: string): number => {
+    const charCount = text.length;
+    return (charCount / 1000) * TTS_COST_PER_1K_CHARS;
+  };
 
   const setupAudioContext = () => {
     try {
@@ -117,11 +125,22 @@ export default function VexaAI() {
     try {
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
-        messages: [{ role: "user", content: userInput }]
+        messages: [{ role: "user", content: userInput }],
+        max_tokens: 150, // Limit response length to control costs
       });
 
       const aiResponse = response.choices[0].message.content;
       if (!aiResponse) throw new Error("Empty response from AI");
+
+      // Calculate and warn about TTS costs
+      const cost = calculateTTSCost(aiResponse);
+      if (cost > 1) { // Warn if cost is over $1
+        toast({
+          title: "High TTS Cost Warning",
+          description: `This response will cost approximately $${cost.toFixed(2)} to speak.`,
+        });
+      }
+
       return aiResponse;
     } catch (error) {
       console.error("Error fetching AI response:", error);
@@ -143,6 +162,20 @@ export default function VexaAI() {
         throw new Error("Failed to initialize audio context");
       }
 
+      // Calculate cost before making the request
+      const cost = calculateTTSCost(text);
+      console.log("TTS cost estimation:", cost);
+
+      // For very long responses, ask for confirmation
+      if (cost > 0.5) {
+        const shouldProceed = window.confirm(
+          `This voice response will cost approximately $${cost.toFixed(2)}. Would you like to proceed?`
+        );
+        if (!shouldProceed) {
+          return;
+        }
+      }
+
       console.log("Starting TTS with voice:", selectedVoice);
       setIsSpeaking(true);
 
@@ -162,6 +195,9 @@ export default function VexaAI() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        if (errorData.error?.code === "insufficient_quota") {
+          throw new Error("OpenAI API credit limit reached. Please add more credits to your account.");
+        }
         throw new Error(`Speech synthesis failed: ${errorData.error?.message || response.statusText}`);
       }
 
