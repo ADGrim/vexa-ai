@@ -206,9 +206,53 @@ export default function VexaAI() {
     window.speechSynthesis.speak(utterance);
   };
 
-  const testVoice = () => {
-    const testMessage = `This is a test of the selected voice.`;
-    speakText(testMessage);
+  const testVoice = async () => {
+    const testMessage = `This is a test of the ${selectedVoice} voice.`;
+    try {
+      const response = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "tts-1-hd",
+          input: testMessage,
+          voice: selectedVoice,
+          speed: rate,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to generate speech");
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      audio.onplay = () => {
+        console.log("Audio playback started");
+        setIsSpeaking(true);
+        visualizeAudio();
+      };
+
+      audio.onended = () => {
+        console.log("Audio playback ended");
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      await audio.play();
+    } catch (error) {
+      console.error("Test voice error:", error);
+      toast({
+        variant: "destructive",
+        title: "Voice Test Failed",
+        description: error instanceof Error ? error.message : "Failed to test voice"
+      });
+    }
   };
 
   const sendMessage = async () => {
