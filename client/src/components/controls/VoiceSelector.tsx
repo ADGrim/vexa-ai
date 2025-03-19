@@ -5,17 +5,24 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Volume2 } from "lucide-react";
 
+const OPENAI_VOICES = [
+  { id: "nova", name: "Nova", description: "Gentle and natural" },
+  { id: "alloy", name: "Alloy", description: "Versatile and balanced" },
+  { id: "echo", name: "Echo", description: "Clear and crisp" },
+  { id: "fable", name: "Fable", description: "British accent" },
+  { id: "onyx", name: "Onyx", description: "Deep and authoritative" },
+  { id: "shimmer", name: "Shimmer", description: "Warm and welcoming" }
+] as const;
+
 interface VoiceSelectorProps {
-  voices: SpeechSynthesisVoice[];
-  selectedVoice: string | null;
-  onVoiceChange: (voice: string) => void;
+  selectedVoice: string;
+  onVoiceChange: (voice: "nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer") => void;
   rate: number;
   onRateChange: (rate: number) => void;
   onTest: () => void;
 }
 
 export function VoiceSelector({
-  voices,
   selectedVoice,
   onVoiceChange,
   rate,
@@ -27,17 +34,17 @@ export function VoiceSelector({
       <div className="space-y-4">
         <div className="flex gap-2 items-end">
           <div className="flex-1 space-y-2">
-            <Label>Voice</Label>
-            <Select value={selectedVoice || undefined} onValueChange={onVoiceChange}>
+            <Label>AI Voice</Label>
+            <Select value={selectedVoice} onValueChange={onVoiceChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a voice" />
               </SelectTrigger>
               <SelectContent>
-                {voices.map((voice) => (
-                  <SelectItem key={voice.name} value={voice.name}>
+                {OPENAI_VOICES.map((voice) => (
+                  <SelectItem key={voice.id} value={voice.id}>
                     <div className="flex flex-col">
                       <span className="font-medium">{voice.name}</span>
-                      <span className="text-xs text-muted-foreground">{voice.lang}</span>
+                      <span className="text-xs text-muted-foreground">{voice.description}</span>
                     </div>
                   </SelectItem>
                 ))}

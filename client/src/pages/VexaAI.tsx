@@ -19,33 +19,16 @@ export default function VexaAI() {
   const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
   const [input, setInput] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
+  const [selectedVoice, setSelectedVoice] = useState<"nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer">("nova");
   const [rate, setRate] = useState(1);
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const speechSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
 
-  // Load available voices
+  // Cleanup on unmount
   useEffect(() => {
-    const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      if (availableVoices.length > 0) {
-        console.log("Available voices:", availableVoices);
-        setVoices(availableVoices);
-        // Prefer English voices
-        const englishVoice = availableVoices.find(v => v.lang.startsWith('en-'));
-        setSelectedVoice(englishVoice?.name || availableVoices[0].name);
-      }
-    };
-
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-
     return () => {
-      window.speechSynthesis.cancel();
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
@@ -110,15 +93,6 @@ export default function VexaAI() {
   };
 
   const fetchAIResponse = async (userInput: string) => {
-    if (!import.meta.env.VITE_OPENAI_API_KEY) {
-      toast({
-        variant: "destructive",
-        title: "API Key Missing",
-        description: "Please provide your OpenAI API key to continue."
-      });
-      return null;
-    }
-
     try {
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -126,89 +100,32 @@ export default function VexaAI() {
         max_tokens: 150
       });
 
-      if (!response.choices?.[0]?.message?.content) {
-        throw new Error("Invalid response from OpenAI");
-      }
-
       return response.choices[0].message.content;
     } catch (error: any) {
       console.error("API Error:", error);
-
-      if (error.error?.type === "insufficient_quota") {
-        toast({
-          variant: "destructive",
-          title: "API Quota Exceeded",
-          description: "Your OpenAI API credits have been depleted. Please add more credits to continue."
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to get AI response. Please try again."
-        });
-      }
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.error?.message || "Failed to get AI response. Please try again."
+      });
       return null;
     }
   };
 
-  const speakText = (text: string) => {
-    if (!window.speechSynthesis) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Your browser doesn't support speech synthesis."
-      });
-      return;
-    }
-
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
-
+  const speakText = async (text: string) => {
     if (!setupAudioContext()) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to initialize audio visualization."
+        description: "Failed to initialize audio system"
       });
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = rate;
-
-    // Set selected voice
-    const voice = voices.find(v => v.name === selectedVoice);
-    if (voice) {
-      utterance.voice = voice;
-    }
-
-    utterance.onstart = () => {
-      console.log("Speech started");
-      setIsSpeaking(true);
-      visualizeAudio();
-    };
-
-    utterance.onend = () => {
-      console.log("Speech ended");
-      setIsSpeaking(false);
-    };
-
-    utterance.onerror = (event) => {
-      console.error("Speech synthesis error:", event);
-      setIsSpeaking(false);
-      toast({
-        variant: "destructive",
-        title: "Speech Error",
-        description: "Failed to speak the response. Please try again."
-      });
-    };
-
-    window.speechSynthesis.speak(utterance);
-  };
-
-  const testVoice = async () => {
-    const testMessage = `This is a test of the ${selectedVoice} voice.`;
     try {
+      console.log("Starting TTS with voice:", selectedVoice);
+      setIsSpeaking(true);
+
       const response = await fetch("https://api.openai.com/v1/audio/speech", {
         method: "POST",
         headers: {
@@ -217,8 +134,9 @@ export default function VexaAI() {
         },
         body: JSON.stringify({
           model: "tts-1-hd",
-          input: testMessage,
+          input: text,
           voice: selectedVoice,
+          response_format: "mp3",
           speed: rate,
         }),
       });
@@ -232,9 +150,12 @@ export default function VexaAI() {
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
 
+      const source = audioContextRef.current!.createMediaElementSource(audio);
+      source.connect(analyserRef.current!);
+      analyserRef.current!.connect(audioContextRef.current!.destination);
+
       audio.onplay = () => {
         console.log("Audio playback started");
-        setIsSpeaking(true);
         visualizeAudio();
       };
 
@@ -246,13 +167,19 @@ export default function VexaAI() {
 
       await audio.play();
     } catch (error) {
-      console.error("Test voice error:", error);
+      console.error("Speech synthesis error:", error);
+      setIsSpeaking(false);
       toast({
         variant: "destructive",
-        title: "Voice Test Failed",
-        description: error instanceof Error ? error.message : "Failed to test voice"
+        title: "Voice Synthesis Error",
+        description: error instanceof Error ? error.message : "Failed to generate voice response"
       });
     }
+  };
+
+  const testVoice = async () => {
+    const testMessage = `This is a test of the ${selectedVoice} voice.`;
+    await speakText(testMessage);
   };
 
   const sendMessage = async () => {
@@ -266,7 +193,7 @@ export default function VexaAI() {
     if (aiResponse) {
       const aiMessage = { text: aiResponse, sender: "ai" as const };
       setMessages((prev) => [...prev, aiMessage]);
-      speakText(aiResponse);
+      await speakText(aiResponse);
     }
   };
 
@@ -317,7 +244,6 @@ export default function VexaAI() {
 
         {/* Voice Controls */}
         <VoiceSelector
-          voices={voices}
           selectedVoice={selectedVoice}
           onVoiceChange={setSelectedVoice}
           rate={rate}
