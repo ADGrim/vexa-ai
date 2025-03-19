@@ -15,179 +15,42 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
-// Cost calculation constants
-const TTS_COST_PER_1K_CHARS = 0.015; // $0.015 per 1K characters
-
 export default function VexaAI() {
   const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
   const [input, setInput] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState<"nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer">("nova");
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [rate, setRate] = useState(1);
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const audioElementRef = useRef<HTMLAudioElement | null>(null);
-  const animationFrameRef = useRef<number>();
+  const speechSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
 
-  const handleAPIError = (error: any) => {
-    console.error("API Error:", error);
-
-    // Check if it's an OpenAI API error
-    if (error.error?.type === "insufficient_quota") {
-      toast({
-        variant: "destructive",
-        title: "API Quota Exceeded",
-        description: "Your OpenAI API credits have been depleted. Please add more credits to continue using the service."
-      });
-      return;
-    }
-
-    // Handle rate limiting
-    if (error.status === 429) {
-      toast({
-        variant: "destructive",
-        title: "Too Many Requests",
-        description: "Please wait a moment before trying again."
-      });
-      return;
-    }
-
-    // Handle authentication errors
-    if (error.status === 401) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Error",
-        description: "Please check your OpenAI API key."
-      });
-      return;
-    }
-
-    // Generic error
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: error.message || "An unexpected error occurred. Please try again."
-    });
-  };
-
-  const fetchAIResponse = async (userInput: string) => {
-    if (!import.meta.env.VITE_OPENAI_API_KEY) {
-      toast({
-        variant: "destructive",
-        title: "API Key Missing",
-        description: "Please provide your OpenAI API key to continue."
-      });
-      return null;
-    }
-
-    try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: userInput }],
-        max_tokens: 150, // Limit response length to control costs
-      });
-
-      if (!response.choices?.[0]?.message?.content) {
-        throw new Error("Invalid response from OpenAI");
-      }
-
-      return response.choices[0].message.content;
-    } catch (error: any) {
-      handleAPIError(error);
-      return null;
-    }
-  };
-
-  const speakText = async (text: string) => {
-    try {
-      // Clean up any existing audio
-      if (audioElementRef.current) {
-        audioElementRef.current.pause();
-        audioElementRef.current.src = "";
-      }
-
-      if (!setupAudioContext()) {
-        throw new Error("Failed to initialize audio context");
-      }
-
-      const cost = calculateTTSCost(text);
-      console.log("TTS cost estimation:", cost);
-
-      const response = await fetch("https://api.openai.com/v1/audio/speech", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "tts-1-hd",
-          input: text,
-          voice: selectedVoice,
-          speed: rate,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw errorData;
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audioElementRef.current = audio;
-
-      const source = audioContextRef.current!.createMediaElementSource(audio);
-      source.connect(analyserRef.current!);
-      analyserRef.current!.connect(audioContextRef.current!.destination);
-
-      audio.onplay = () => {
-        console.log("Audio playback started");
-        visualizeAudio();
-      };
-
-      audio.onended = () => {
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-
-      setIsSpeaking(true);
-      await audio.play();
-    } catch (error: any) {
-      handleAPIError(error);
-      setIsSpeaking(false);
-    }
-  };
-
-  // Clean up function for audio resources
-  const cleanupAudio = () => {
-    if (audioElementRef.current) {
-      audioElementRef.current.pause();
-      audioElementRef.current.src = "";
-    }
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
-    }
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-    setIsSpeaking(false);
-  };
-
-  // Cleanup on unmount
+  // Load available voices
   useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      if (availableVoices.length > 0) {
+        console.log("Available voices:", availableVoices);
+        setVoices(availableVoices);
+        // Prefer English voices
+        const englishVoice = availableVoices.find(v => v.lang.startsWith('en-'));
+        setSelectedVoice(englishVoice?.name || availableVoices[0].name);
+      }
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
     return () => {
-      cleanupAudio();
+      window.speechSynthesis.cancel();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
     };
   }, []);
-
-  const calculateTTSCost = (text: string): number => {
-    const charCount = text.length;
-    return (charCount / 1000) * TTS_COST_PER_1K_CHARS;
-  };
 
   const setupAudioContext = () => {
     try {
@@ -218,14 +81,9 @@ export default function VexaAI() {
     const dataArray = new Uint8Array(bufferLength);
 
     const draw = () => {
-      if (!isSpeaking) {
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-        }
-        return;
-      }
+      if (!isSpeaking) return;
+      requestAnimationFrame(draw);
 
-      animationFrameRef.current = requestAnimationFrame(draw);
       analyserRef.current!.getByteFrequencyData(dataArray);
 
       ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
@@ -251,9 +109,106 @@ export default function VexaAI() {
     draw();
   };
 
-  const testVoice = async () => {
-    const testMessage = `This is a test of the ${selectedVoice} voice.`;
-    await speakText(testMessage);
+  const fetchAIResponse = async (userInput: string) => {
+    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+      toast({
+        variant: "destructive",
+        title: "API Key Missing",
+        description: "Please provide your OpenAI API key to continue."
+      });
+      return null;
+    }
+
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: userInput }],
+        max_tokens: 150
+      });
+
+      if (!response.choices?.[0]?.message?.content) {
+        throw new Error("Invalid response from OpenAI");
+      }
+
+      return response.choices[0].message.content;
+    } catch (error: any) {
+      console.error("API Error:", error);
+
+      if (error.error?.type === "insufficient_quota") {
+        toast({
+          variant: "destructive",
+          title: "API Quota Exceeded",
+          description: "Your OpenAI API credits have been depleted. Please add more credits to continue."
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to get AI response. Please try again."
+        });
+      }
+      return null;
+    }
+  };
+
+  const speakText = (text: string) => {
+    if (!window.speechSynthesis) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Your browser doesn't support speech synthesis."
+      });
+      return;
+    }
+
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    if (!setupAudioContext()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to initialize audio visualization."
+      });
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = rate;
+
+    // Set selected voice
+    const voice = voices.find(v => v.name === selectedVoice);
+    if (voice) {
+      utterance.voice = voice;
+    }
+
+    utterance.onstart = () => {
+      console.log("Speech started");
+      setIsSpeaking(true);
+      visualizeAudio();
+    };
+
+    utterance.onend = () => {
+      console.log("Speech ended");
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = (event) => {
+      console.error("Speech synthesis error:", event);
+      setIsSpeaking(false);
+      toast({
+        variant: "destructive",
+        title: "Speech Error",
+        description: "Failed to speak the response. Please try again."
+      });
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const testVoice = () => {
+    const testMessage = `This is a test of the selected voice.`;
+    speakText(testMessage);
   };
 
   const sendMessage = async () => {
@@ -267,7 +222,7 @@ export default function VexaAI() {
     if (aiResponse) {
       const aiMessage = { text: aiResponse, sender: "ai" as const };
       setMessages((prev) => [...prev, aiMessage]);
-      await speakText(aiResponse);
+      speakText(aiResponse);
     }
   };
 
@@ -318,6 +273,7 @@ export default function VexaAI() {
 
         {/* Voice Controls */}
         <VoiceSelector
+          voices={voices}
           selectedVoice={selectedVoice}
           onVoiceChange={setSelectedVoice}
           rate={rate}
