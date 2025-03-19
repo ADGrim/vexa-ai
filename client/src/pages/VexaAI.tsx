@@ -31,6 +31,136 @@ export default function VexaAI() {
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const animationFrameRef = useRef<number>();
 
+  const handleAPIError = (error: any) => {
+    console.error("API Error:", error);
+
+    // Check if it's an OpenAI API error
+    if (error.error?.type === "insufficient_quota") {
+      toast({
+        variant: "destructive",
+        title: "API Quota Exceeded",
+        description: "Your OpenAI API credits have been depleted. Please add more credits to continue using the service."
+      });
+      return;
+    }
+
+    // Handle rate limiting
+    if (error.status === 429) {
+      toast({
+        variant: "destructive",
+        title: "Too Many Requests",
+        description: "Please wait a moment before trying again."
+      });
+      return;
+    }
+
+    // Handle authentication errors
+    if (error.status === 401) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "Please check your OpenAI API key."
+      });
+      return;
+    }
+
+    // Generic error
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error.message || "An unexpected error occurred. Please try again."
+    });
+  };
+
+  const fetchAIResponse = async (userInput: string) => {
+    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+      toast({
+        variant: "destructive",
+        title: "API Key Missing",
+        description: "Please provide your OpenAI API key to continue."
+      });
+      return null;
+    }
+
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: userInput }],
+        max_tokens: 150, // Limit response length to control costs
+      });
+
+      if (!response.choices?.[0]?.message?.content) {
+        throw new Error("Invalid response from OpenAI");
+      }
+
+      return response.choices[0].message.content;
+    } catch (error: any) {
+      handleAPIError(error);
+      return null;
+    }
+  };
+
+  const speakText = async (text: string) => {
+    try {
+      // Clean up any existing audio
+      if (audioElementRef.current) {
+        audioElementRef.current.pause();
+        audioElementRef.current.src = "";
+      }
+
+      if (!setupAudioContext()) {
+        throw new Error("Failed to initialize audio context");
+      }
+
+      const cost = calculateTTSCost(text);
+      console.log("TTS cost estimation:", cost);
+
+      const response = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "tts-1-hd",
+          input: text,
+          voice: selectedVoice,
+          speed: rate,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audioElementRef.current = audio;
+
+      const source = audioContextRef.current!.createMediaElementSource(audio);
+      source.connect(analyserRef.current!);
+      analyserRef.current!.connect(audioContextRef.current!.destination);
+
+      audio.onplay = () => {
+        console.log("Audio playback started");
+        visualizeAudio();
+      };
+
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      setIsSpeaking(true);
+      await audio.play();
+    } catch (error: any) {
+      handleAPIError(error);
+      setIsSpeaking(false);
+    }
+  };
+
   // Clean up function for audio resources
   const cleanupAudio = () => {
     if (audioElementRef.current) {
@@ -121,129 +251,6 @@ export default function VexaAI() {
     draw();
   };
 
-  const fetchAIResponse = async (userInput: string) => {
-    try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: userInput }],
-        max_tokens: 150, // Limit response length to control costs
-      });
-
-      const aiResponse = response.choices[0].message.content;
-      if (!aiResponse) throw new Error("Empty response from AI");
-
-      // Calculate and warn about TTS costs
-      const cost = calculateTTSCost(aiResponse);
-      if (cost > 1) { // Warn if cost is over $1
-        toast({
-          title: "High TTS Cost Warning",
-          description: `This response will cost approximately $${cost.toFixed(2)} to speak.`,
-        });
-      }
-
-      return aiResponse;
-    } catch (error) {
-      console.error("Error fetching AI response:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to get AI response. Please try again."
-      });
-      throw error;
-    }
-  };
-
-  const speakText = async (text: string) => {
-    try {
-      // Clean up any existing audio
-      cleanupAudio();
-
-      if (!setupAudioContext()) {
-        throw new Error("Failed to initialize audio context");
-      }
-
-      // Calculate cost before making the request
-      const cost = calculateTTSCost(text);
-      console.log("TTS cost estimation:", cost);
-
-      // For very long responses, ask for confirmation
-      if (cost > 0.5) {
-        const shouldProceed = window.confirm(
-          `This voice response will cost approximately $${cost.toFixed(2)}. Would you like to proceed?`
-        );
-        if (!shouldProceed) {
-          return;
-        }
-      }
-
-      console.log("Starting TTS with voice:", selectedVoice);
-      setIsSpeaking(true);
-
-      const response = await fetch("https://api.openai.com/v1/audio/speech", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "tts-1-hd",
-          input: text,
-          voice: selectedVoice,
-          speed: rate,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.error?.code === "insufficient_quota") {
-          throw new Error("OpenAI API credit limit reached. Please add more credits to your account.");
-        }
-        throw new Error(`Speech synthesis failed: ${errorData.error?.message || response.statusText}`);
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      // Create and set up audio element
-      const audio = new Audio(audioUrl);
-      audioElementRef.current = audio;
-
-      // Connect audio element to analyzer
-      const source = audioContextRef.current!.createMediaElementSource(audio);
-      source.connect(analyserRef.current!);
-      analyserRef.current!.connect(audioContextRef.current!.destination);
-
-      // Set up audio event handlers
-      audio.onplay = () => {
-        console.log("Audio playback started");
-        visualizeAudio();
-      };
-
-      audio.onended = () => {
-        console.log("Audio playback ended");
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-
-      audio.onerror = (e) => {
-        console.error("Audio playback error:", e);
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-        throw new Error("Audio playback failed");
-      };
-
-      await audio.play();
-    } catch (error) {
-      console.error("Error in speech synthesis:", error);
-      setIsSpeaking(false);
-      toast({
-        variant: "destructive",
-        title: "Voice Synthesis Error",
-        description: error instanceof Error ? error.message : "Failed to generate voice response"
-      });
-    }
-  };
-
   const testVoice = async () => {
     const testMessage = `This is a test of the ${selectedVoice} voice.`;
     await speakText(testMessage);
@@ -256,12 +263,11 @@ export default function VexaAI() {
     setMessages((prev) => [...prev, newMessage]);
     setInput("");
 
-    try {
-      const aiResponse = await fetchAIResponse(input);
-      setMessages((prev) => [...prev, { text: aiResponse, sender: "ai" as const }]);
+    const aiResponse = await fetchAIResponse(input);
+    if (aiResponse) {
+      const aiMessage = { text: aiResponse, sender: "ai" as const };
+      setMessages((prev) => [...prev, aiMessage]);
       await speakText(aiResponse);
-    } catch (error) {
-      console.error("Error processing message:", error);
     }
   };
 
