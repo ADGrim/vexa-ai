@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +23,10 @@ export default function VexaAI() {
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [rate, setRate] = useState(1);
   const { toast } = useToast();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
 
   useEffect(() => {
     const loadVoices = () => {
@@ -41,8 +45,58 @@ export default function VexaAI() {
 
     return () => {
       window.speechSynthesis.cancel();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
     };
   }, []);
+
+  const setupAudioContext = () => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      analyserRef.current.fftSize = 256;
+    }
+  };
+
+  const visualizeAudio = () => {
+    if (!canvasRef.current || !analyserRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const bufferLength = analyserRef.current.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+      if (!isSpeaking) return;
+      requestAnimationFrame(draw);
+
+      analyserRef.current!.getByteFrequencyData(dataArray);
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const barWidth = (canvas.width / bufferLength) * 2.5;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = dataArray[i] / 2;
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, 'hsl(var(--primary))');
+        gradient.addColorStop(1, 'hsl(var(--primary) / 0.3)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+        x += barWidth + 1;
+      }
+    }
+
+    draw();
+  };
 
   const fetchAIResponse = async (userInput: string) => {
     try {
@@ -76,7 +130,8 @@ export default function VexaAI() {
       return;
     }
 
-    window.speechSynthesis.cancel(); // Cancel any ongoing speech
+    setupAudioContext();
+    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = rate;
@@ -90,6 +145,7 @@ export default function VexaAI() {
     utterance.onstart = () => {
       console.log("Speech started");
       setIsSpeaking(true);
+      visualizeAudio();
     };
 
     utterance.onend = () => {
@@ -138,6 +194,16 @@ export default function VexaAI() {
           {/* Chat Messages Area */}
           <div className="h-[60vh] overflow-y-auto p-4">
             <ChatMessage messages={messages} isSpeaking={isSpeaking} />
+          </div>
+
+          {/* Audio Visualizer */}
+          <div className="px-4 pb-4">
+            <canvas
+              ref={canvasRef}
+              width={600}
+              height={100}
+              className="w-full h-[100px] rounded-lg bg-background/20 backdrop-blur-sm"
+            />
           </div>
 
           {/* Message Input Area */}
