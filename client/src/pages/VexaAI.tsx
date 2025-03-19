@@ -19,9 +19,30 @@ export default function VexaAI() {
   const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
   const [input, setInput] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState<"nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer">("nova");
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [rate, setRate] = useState(1);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      if (availableVoices.length > 0) {
+        console.log("Available voices:", availableVoices.map(v => v.name));
+        setVoices(availableVoices);
+        // Prefer English voices
+        const englishVoice = availableVoices.find(v => v.lang.startsWith('en-'));
+        setSelectedVoice(englishVoice?.name || availableVoices[0].name);
+      }
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
 
   const fetchAIResponse = async (userInput: string) => {
     try {
@@ -44,95 +65,54 @@ export default function VexaAI() {
     }
   };
 
-  const startHumanlikeVoiceResponse = async (text: string) => {
-    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+  const speakText = (text: string) => {
+    if (!window.speechSynthesis) {
+      console.error("Speech synthesis not supported");
       toast({
         variant: "destructive",
-        title: "API Key Missing",
-        description: "Please provide your OpenAI API key to enable voice responses."
+        title: "Error",
+        description: "Your browser doesn't support speech synthesis."
       });
       return;
     }
 
-    try {
-      console.log("Starting voice synthesis with voice:", selectedVoice);
+    window.speechSynthesis.cancel(); // Cancel any ongoing speech
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = rate;
+
+    const voice = voices.find(v => v.name === selectedVoice);
+    if (voice) {
+      console.log("Using voice:", voice.name);
+      utterance.voice = voice;
+    }
+
+    utterance.onstart = () => {
+      console.log("Speech started");
       setIsSpeaking(true);
+    };
 
-      // Ensure the text is not empty
-      if (!text.trim()) {
-        throw new Error("Empty text provided for voice synthesis");
-      }
+    utterance.onend = () => {
+      console.log("Speech ended");
+      setIsSpeaking(false);
+    };
 
-      const response = await fetch("https://api.openai.com/v1/audio/speech", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "tts-1-hd",
-          input: text,
-          voice: selectedVoice,
-          speed: rate,
-          response_format: "mp3",
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("OpenAI API Error:", {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText
-        });
-        throw new Error(`Speech synthesis failed: ${response.status} - ${errorText}`);
-      }
-
-      console.log("Received audio response, creating blob...");
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-
-      audio.onloadeddata = () => {
-        console.log("Audio loaded, starting playback...");
-      };
-
-      audio.onplay = () => {
-        console.log("Audio playback started");
-      };
-
-      audio.onended = () => {
-        console.log("Audio playback ended");
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-
-      audio.onerror = (e) => {
-        console.error("Audio playback error:", e);
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-        toast({
-          variant: "destructive",
-          title: "Playback Error",
-          description: "Failed to play audio response. Please try again."
-        });
-      };
-
-      await audio.play();
-    } catch (error) {
-      console.error("Error generating speech:", error);
+    utterance.onerror = (event) => {
+      console.error("Speech synthesis error:", event);
       setIsSpeaking(false);
       toast({
         variant: "destructive",
-        title: "Voice Synthesis Error",
-        description: error instanceof Error ? error.message : "Failed to generate voice response. Please check your API key and try again."
+        title: "Speech Error",
+        description: "Failed to speak the response. Please try again."
       });
-    }
+    };
+
+    window.speechSynthesis.speak(utterance);
   };
 
-  const testVoice = async () => {
-    const testMessage = "This is a test of the voice synthesis system.";
-    await startHumanlikeVoiceResponse(testMessage);
+  const testVoice = () => {
+    const testMessage = "This is a test of the selected voice.";
+    speakText(testMessage);
   };
 
   const sendMessage = async () => {
@@ -145,7 +125,7 @@ export default function VexaAI() {
     try {
       const aiResponse = await fetchAIResponse(input);
       setMessages((prev) => [...prev, { text: aiResponse, sender: "ai" as const }]);
-      await startHumanlikeVoiceResponse(aiResponse);
+      speakText(aiResponse);
     } catch (error) {
       console.error("Error processing message:", error);
     }
@@ -188,6 +168,7 @@ export default function VexaAI() {
 
         {/* Voice Controls */}
         <VoiceSelector
+          voices={voices}
           selectedVoice={selectedVoice}
           onVoiceChange={setSelectedVoice}
           rate={rate}
