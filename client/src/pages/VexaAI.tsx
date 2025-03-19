@@ -25,10 +25,15 @@ export default function VexaAI() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Cleanup on unmount
+  // Cleanup audio resources on unmount
   useEffect(() => {
     return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
@@ -40,12 +45,10 @@ export default function VexaAI() {
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-
       if (!analyserRef.current) {
         analyserRef.current = audioContextRef.current.createAnalyser();
         analyserRef.current.fftSize = 256;
       }
-
       return true;
     } catch (error) {
       console.error("Failed to setup audio context:", error);
@@ -93,7 +96,17 @@ export default function VexaAI() {
   };
 
   const fetchAIResponse = async (userInput: string) => {
+    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+      toast({
+        variant: "destructive",
+        title: "API Key Missing",
+        description: "Please provide your OpenAI API key to continue."
+      });
+      return null;
+    }
+
     try {
+      console.log("Fetching AI response...");
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [{ role: "user", content: userInput }],
@@ -102,7 +115,7 @@ export default function VexaAI() {
 
       return response.choices[0].message.content;
     } catch (error: any) {
-      console.error("API Error:", error);
+      console.error("OpenAI API Error:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -113,17 +126,19 @@ export default function VexaAI() {
   };
 
   const speakText = async (text: string) => {
-    if (!setupAudioContext()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to initialize audio system"
-      });
-      return;
-    }
-
     try {
-      console.log("Starting TTS with voice:", selectedVoice);
+      console.log("Starting TTS with:", { text, voice: selectedVoice, rate });
+
+      // Clean up previous audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+
+      if (!setupAudioContext()) {
+        throw new Error("Failed to initialize audio context");
+      }
+
       setIsSpeaking(true);
 
       const response = await fetch("https://api.openai.com/v1/audio/speech", {
@@ -136,20 +151,23 @@ export default function VexaAI() {
           model: "tts-1-hd",
           input: text,
           voice: selectedVoice,
-          response_format: "mp3",
           speed: rate,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("OpenAI TTS Error:", errorData);
         throw new Error(errorData.error?.message || "Failed to generate speech");
       }
 
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
 
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      // Set up audio pipeline
       const source = audioContextRef.current!.createMediaElementSource(audio);
       source.connect(analyserRef.current!);
       analyserRef.current!.connect(audioContextRef.current!.destination);
