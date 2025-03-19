@@ -26,7 +26,8 @@ export default function VexaAI() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const animationFrameRef = useRef<number>();
 
   useEffect(() => {
     const loadVoices = () => {
@@ -43,19 +44,33 @@ export default function VexaAI() {
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
+    // Clean up
     return () => {
       window.speechSynthesis.cancel();
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, []);
 
   const setupAudioContext = () => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      analyserRef.current = audioContextRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256;
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+
+      if (!analyserRef.current) {
+        analyserRef.current = audioContextRef.current.createAnalyser();
+        analyserRef.current.fftSize = 256;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Failed to setup audio context:", error);
+      return false;
     }
   };
 
@@ -69,12 +84,18 @@ export default function VexaAI() {
     const bufferLength = analyserRef.current.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
-    function draw() {
-      if (!isSpeaking) return;
-      requestAnimationFrame(draw);
+    const draw = () => {
+      if (!isSpeaking) {
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+        return;
+      }
 
+      animationFrameRef.current = requestAnimationFrame(draw);
       analyserRef.current!.getByteFrequencyData(dataArray);
 
+      // Clear with a semi-transparent background for trail effect
       ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -82,18 +103,18 @@ export default function VexaAI() {
       let x = 0;
 
       for (let i = 0; i < bufferLength; i++) {
-        const barHeight = dataArray[i] / 2;
+        const barHeight = (dataArray[i] / 255) * canvas.height;
 
-        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        gradient.addColorStop(0, 'hsl(var(--primary))');
-        gradient.addColorStop(1, 'hsl(var(--primary) / 0.3)');
+        const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight);
+        gradient.addColorStop(0, 'hsl(var(--primary) / 0.3)');
+        gradient.addColorStop(1, 'hsl(var(--primary))');
 
         ctx.fillStyle = gradient;
         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
 
         x += barWidth + 1;
       }
-    }
+    };
 
     draw();
   };
@@ -130,8 +151,16 @@ export default function VexaAI() {
       return;
     }
 
-    setupAudioContext();
     window.speechSynthesis.cancel();
+
+    if (!setupAudioContext()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to initialize audio system. Please try again."
+      });
+      return;
+    }
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = rate;
