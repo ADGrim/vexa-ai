@@ -6,6 +6,7 @@ import OpenAI from "openai";
 import { ListeningCircle } from "@/components/ListeningCircle";
 import { MoodSyncWrapper } from "@/components/MoodSyncWrapper";
 import { speakMyStyle } from "@/lib/SpeakMyStyle";
+import { detectVexaMention, generateVexaResponse } from "@/lib/vexaPatterns";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
 const openai = new OpenAI({

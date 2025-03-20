@@ -1,5 +1,4 @@
-```typescript
-// Utility functions for detecting Vexa mentions and generating responses
+import vexaProfile, { getTimeBasedGreeting } from './vexaProfile';
 
 export const detectVexaMention = (message: string): boolean => {
   const lowerMsg = message.toLowerCase();
@@ -13,23 +12,27 @@ export const detectVexaMention = (message: string): boolean => {
 
 export const generateVexaResponse = (userMessage: string): string => {
   const lowerMsg = userMessage.toLowerCase();
-  
+
   // Check for greetings first
-  const greetPatterns = /\b(hi|hey|hello)[, ]?(vexa)\b/i;
+  const greetPatterns = new RegExp(`\\b(hi|hello|hey)[, ]?(${vexaProfile.name.toLowerCase()})\\b`);
   if (greetPatterns.test(lowerMsg)) {
-    return "Hey there! 😊 How can I help?";
+    return getTimeBasedGreeting();
   }
 
-  // Check for Vexa mentions
+  // Check for specific questions about Vexa
+  if (lowerMsg.includes("name") || lowerMsg.includes("who are you")) {
+    return vexaProfile.introResponse;
+  }
+
+  // Check for direct mentions of Vexa
   if (detectVexaMention(userMessage)) {
-    return "I'm Vexa — your AI assistant. 😊";
+    return vexaProfile.playfulResponse;
   }
 
-  // Fallback responses based on message type
-  if (userMessage.trim().endsWith('?')) {
-    return "That's an interesting question!";
+  // Check if it's a question
+  if (lowerMsg.trim().endsWith("?")) {
+    return "That's an interesting question! Let me help you with that.";
   }
-  
-  return "I see!";
+
+  return vexaProfile.fallbackResponse;
 };
-```
