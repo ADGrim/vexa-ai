@@ -10,10 +10,26 @@ export const detectVexaMention = (message: string): boolean => {
   return patterns.some((pattern) => pattern.test(lowerMsg));
 };
 
+export const detectCreatorQuestion = (message: string): boolean => {
+  const lowerMsg = message.toLowerCase();
+  const patterns = [
+    /who (created|made|built) (you|vexa)\??/i,
+    /who('?s| is) your (creator|maker)\??/i,
+    /who developed (you|vexa)\??/i,
+    /who programmed (you|vexa)\??/i
+  ];
+  return patterns.some((pattern) => pattern.test(lowerMsg));
+};
+
 export const generateVexaResponse = (userMessage: string): string => {
   const lowerMsg = userMessage.toLowerCase();
 
-  // Check for greetings first
+  // Check for creator questions first
+  if (detectCreatorQuestion(userMessage)) {
+    return "I was created by Aaron.";
+  }
+
+  // Check for greetings
   const greetPatterns = new RegExp(`\\b(hi|hello|hey)[, ]?(${vexaProfile.name.toLowerCase()})\\b`);
   if (greetPatterns.test(lowerMsg)) {
     return getTimeBasedGreeting();
