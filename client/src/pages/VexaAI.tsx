@@ -4,6 +4,7 @@ import VexaChatUI from "@/components/VexaChatUI";
 import { VoiceSelector } from "@/components/controls/VoiceSelector";
 import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
+import { ListeningCircle } from "@/components/ListeningCircle"; // Added import
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
 const openai = new OpenAI({
@@ -24,6 +25,7 @@ export default function VexaAI() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState<"nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer">("nova");
   const [rate, setRate] = useState(1);
+  const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false); // Added state
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioStateRef = useRef<AudioState>({
@@ -262,6 +264,9 @@ export default function VexaAI() {
             onSendMessage={handleSendMessage}
             isSpeaking={isSpeaking}
           />
+
+          {/* Listening Circle */}
+          {voiceRecognitionActive && <ListeningCircle />} {/* Added ListeningCircle */}
 
           {/* Audio Visualizer */}
           <div className="px-4 pb-4">

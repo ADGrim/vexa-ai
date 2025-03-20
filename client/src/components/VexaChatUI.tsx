@@ -1,6 +1,5 @@
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { TypingIndicator } from './TypingIndicator';
 
 interface Message {
   text: string;
@@ -15,55 +14,54 @@ interface VexaChatUIProps {
   isSpeaking: boolean;
 }
 
-export default function VexaChatUI({ 
-  messages, 
-  input, 
-  onInputChange, 
+export default function VexaChatUI({
+  messages,
+  input,
+  onInputChange,
   onSendMessage,
-  isSpeaking 
+  isSpeaking
 }: VexaChatUIProps) {
   return (
-    <div className="min-h-[60vh] bg-background/40 backdrop-blur-sm flex flex-col justify-between rounded-lg border border-primary/20">
-      <div className="overflow-y-auto flex-grow space-y-4 p-4">
+    <div className="min-h-screen bg-gray-900 flex flex-col justify-between p-4 text-white">
+      <div className="overflow-y-auto flex-grow space-y-4">
         {messages.map((msg, index) => (
           <div
             key={index}
             className={`${
               msg.sender === "user"
-                ? "ml-auto bg-gradient-to-r from-primary to-primary/80"
-                : "bg-gradient-to-r from-secondary to-secondary/80"
-            } text-primary-foreground p-3 rounded-xl w-fit shadow-xl max-w-xs`}
+                ? "bg-[#5b2c6f] ml-auto"
+                : "bg-[#1c1c1c]"
+            } text-white p-3 rounded-xl w-fit shadow-xl max-w-xs`}
           >
             {msg.text}
           </div>
         ))}
         {isSpeaking && (
           <div className="mx-auto mt-8">
-            <div className="h-2 w-64 bg-gradient-to-r from-primary to-primary/50 animate-pulse rounded-full opacity-90"></div>
+            <TypingIndicator />
           </div>
         )}
       </div>
-      <div className="p-4 border-t border-primary/20 bg-background/60 backdrop-blur-sm rounded-b-lg">
-        <div className="flex items-center space-x-2">
-          <Input
-            value={input}
-            onChange={(e) => onInputChange(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-grow bg-background/50"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                onSendMessage();
-              }
-            }}
-          />
-          <Button
-            onClick={onSendMessage}
-            className="bg-primary hover:bg-primary/90"
-          >
-            Send
-          </Button>
-        </div>
+      <div className="mt-4 flex items-center space-x-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => onInputChange(e.target.value)}
+          placeholder="Type your message..."
+          className="flex-grow p-3 rounded-full bg-gray-800 border-none focus:ring-2 focus:ring-purple-600 placeholder-gray-400"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              onSendMessage();
+            }
+          }}
+        />
+        <button
+          onClick={onSendMessage}
+          className="bg-gradient-to-r from-purple-500 to-blue-500 p-3 rounded-full hover:opacity-80 transition shadow-md"
+        >
+          Send
+        </button>
       </div>
     </div>
   );
