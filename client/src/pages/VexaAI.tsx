@@ -268,7 +268,6 @@ export default function VexaAI() {
     }
   };
 
-
   const detectVexaMention = (userInput: string): boolean => {
     // Implement your Vexa mention detection logic here
     // This is a placeholder, replace with your actual logic
