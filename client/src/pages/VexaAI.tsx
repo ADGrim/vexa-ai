@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import VexaLayout from "@/components/VexaLayout";
-import { VoiceSelector } from "@/components/controls/VoiceSelector";
 import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
 import { ListeningCircle } from "@/components/ListeningCircle";
@@ -25,8 +24,6 @@ export default function VexaAI() {
   const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
   const [input, setInput] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState<"nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer">("nova");
-  const [rate, setRate] = useState(1);
   const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false);
   const [styleAdaptationEnabled, setStyleAdaptationEnabled] = useState(false);
   const { toast } = useToast();
@@ -163,6 +160,32 @@ export default function VexaAI() {
     }
   };
 
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
+
+    // Record user message for style analysis
+    if (styleAdaptationEnabled) {
+      speakMyStyle.recordMessage(input);
+    }
+
+    const newMessage = { text: input, sender: "user" as const };
+    setMessages((prev) => [...prev, newMessage]);
+    setInput("");
+
+    try {
+      const aiResponse = await fetchAIResponse(input);
+      const aiMessage = { text: aiResponse, sender: "ai" as const };
+      setMessages((prev) => [...prev, aiMessage]);
+      await speakText(aiResponse);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    }
+  };
+
   const speakText = async (text: string) => {
     try {
       cleanupAudio();
@@ -171,7 +194,7 @@ export default function VexaAI() {
         throw new Error("Failed to initialize audio context");
       }
 
-      console.log("Starting TTS with:", { text, voice: selectedVoice, rate });
+      console.log("Starting TTS with:", { text});
       setIsSpeaking(true);
 
       const response = await fetch("https://api.openai.com/v1/audio/speech", {
@@ -183,8 +206,8 @@ export default function VexaAI() {
         body: JSON.stringify({
           model: "tts-1-hd",
           input: text,
-          voice: selectedVoice,
-          speed: rate,
+          voice: "nova", // Default voice
+          speed: 1, //Default speed
         }),
       });
 
@@ -237,44 +260,6 @@ export default function VexaAI() {
     }
   };
 
-  const testVoice = async () => {
-    try {
-      const testMessage = `This is a test of the ${selectedVoice} voice.`;
-      await speakText(testMessage);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Voice Test Failed",
-        description: error instanceof Error ? error.message : "Failed to test voice"
-      });
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
-
-    // Record user message for style analysis
-    if (styleAdaptationEnabled) {
-      speakMyStyle.recordMessage(input);
-    }
-
-    const newMessage = { text: input, sender: "user" as const };
-    setMessages((prev) => [...prev, newMessage]);
-    setInput("");
-
-    try {
-      const aiResponse = await fetchAIResponse(input);
-      const aiMessage = { text: aiResponse, sender: "ai" as const };
-      setMessages((prev) => [...prev, aiMessage]);
-      await speakText(aiResponse);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "An unexpected error occurred"
-      });
-    }
-  };
 
   return (
     <MoodSyncWrapper>
@@ -291,17 +276,6 @@ export default function VexaAI() {
           setStyleAdaptationEnabled={setStyleAdaptationEnabled} 
           canvasRef={canvasRef}
         />
-
-        {/* Voice Controls */}
-        <div className="fixed bottom-4 right-4">
-          <VoiceSelector
-            selectedVoice={selectedVoice}
-            onVoiceChange={setSelectedVoice}
-            rate={rate}
-            onRateChange={setRate}
-            onTest={testVoice}
-          />
-        </div>
       </div>
     </MoodSyncWrapper>
   );
