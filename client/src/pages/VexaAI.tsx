@@ -130,12 +130,20 @@ export default function VexaAI() {
     draw();
   };
 
+  // Update the fetchAIResponse function to include Vexa patterns
   const fetchAIResponse = async (userInput: string) => {
     if (!import.meta.env.VITE_OPENAI_API_KEY) {
       throw new Error("OpenAI API key is required");
     }
 
     try {
+      // Check for Vexa-specific patterns first
+      if (detectVexaMention(userInput)) {
+        const vexaResponse = generateVexaResponse(userInput);
+        return vexaResponse;
+      }
+
+      // If no Vexa-specific response, proceed with OpenAI API call
       console.log("Fetching AI response...");
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -261,19 +269,31 @@ export default function VexaAI() {
   };
 
 
+  const detectVexaMention = (userInput: string): boolean => {
+    // Implement your Vexa mention detection logic here
+    // This is a placeholder, replace with your actual logic
+    return userInput.toLowerCase().includes("vexa");
+  };
+
+  const generateVexaResponse = (userInput: string): string => {
+    // Implement your Vexa response generation logic here
+    // This is a placeholder, replace with your actual logic
+    return "This is a Vexa-specific response to: " + userInput;
+  };
+
   return (
     <MoodSyncWrapper>
       <div className="min-h-screen transition-colors duration-1000">
-        <VexaLayout 
-          messages={messages} 
-          input={input} 
-          onInputChange={setInput} 
-          onSendMessage={handleSendMessage} 
-          isSpeaking={isSpeaking} 
-          voiceRecognitionActive={voiceRecognitionActive} 
+        <VexaLayout
+          messages={messages}
+          input={input}
+          onInputChange={setInput}
+          onSendMessage={handleSendMessage}
+          isSpeaking={isSpeaking}
+          voiceRecognitionActive={voiceRecognitionActive}
           setVoiceRecognitionActive={setVoiceRecognitionActive}
           styleAdaptationEnabled={styleAdaptationEnabled}
-          setStyleAdaptationEnabled={setStyleAdaptationEnabled} 
+          setStyleAdaptationEnabled={setStyleAdaptationEnabled}
           canvasRef={canvasRef}
         />
       </div>
