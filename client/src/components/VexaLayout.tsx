@@ -3,6 +3,8 @@ import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { ListeningCircle } from './ListeningCircle';
 import { SidebarWaveIcon } from './SidebarWaveIcon';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface VexaLayoutProps {
   messages: Array<{ text: string; sender: "user" | "ai" }>;
@@ -12,6 +14,8 @@ interface VexaLayoutProps {
   isSpeaking: boolean;
   voiceRecognitionActive: boolean;
   setVoiceRecognitionActive: (active: boolean) => void;
+  styleAdaptationEnabled: boolean;
+  setStyleAdaptationEnabled: (enabled: boolean) => void;
   canvasRef: React.RefObject<HTMLCanvasElement>;
 }
 
@@ -23,6 +27,8 @@ export default function VexaLayout({
   isSpeaking,
   voiceRecognitionActive,
   setVoiceRecognitionActive,
+  styleAdaptationEnabled,
+  setStyleAdaptationEnabled,
   canvasRef
 }: VexaLayoutProps) {
   return (
@@ -31,7 +37,14 @@ export default function VexaLayout({
       <aside className="w-20 bg-black/20 backdrop-blur-lg flex flex-col items-center py-6 space-y-10 shadow-xl">
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500"></div>
         <SidebarWaveIcon />
-        <button className="hover:opacity-80 text-2xl">📋</button>
+        <div className="flex flex-col items-center gap-2">
+          <Switch
+            checked={styleAdaptationEnabled}
+            onCheckedChange={setStyleAdaptationEnabled}
+            className="data-[state=checked]:bg-purple-500"
+          />
+          <Label className="text-xs text-center">Style Match</Label>
+        </div>
       </aside>
 
       {/* Chat area */}

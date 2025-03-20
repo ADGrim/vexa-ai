@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
 import { ListeningCircle } from "@/components/ListeningCircle";
 import { MoodSyncWrapper } from "@/components/MoodSyncWrapper";
+import { speakMyStyle } from "@/lib/SpeakMyStyle";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
 const openai = new OpenAI({
@@ -27,6 +28,7 @@ export default function VexaAI() {
   const [selectedVoice, setSelectedVoice] = useState<"nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer">("nova");
   const [rate, setRate] = useState(1);
   const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false);
+  const [styleAdaptationEnabled, setStyleAdaptationEnabled] = useState(false);
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioStateRef = useRef<AudioState>({
@@ -35,6 +37,15 @@ export default function VexaAI() {
     audio: null,
     animationFrame: null
   });
+
+  // Toggle style adaptation
+  useEffect(() => {
+    if (styleAdaptationEnabled) {
+      speakMyStyle.enable();
+    } else {
+      speakMyStyle.disable();
+    }
+  }, [styleAdaptationEnabled]);
 
   useEffect(() => {
     return () => {
@@ -139,7 +150,13 @@ export default function VexaAI() {
         throw new Error("Invalid response from OpenAI");
       }
 
-      return response.choices[0].message.content;
+      // Apply style adaptation if enabled
+      let aiResponse = response.choices[0].message.content;
+      if (styleAdaptationEnabled) {
+        aiResponse = speakMyStyle.styleResponse(aiResponse);
+      }
+
+      return aiResponse;
     } catch (error: any) {
       console.error("OpenAI API Error:", error);
       throw error;
@@ -236,6 +253,11 @@ export default function VexaAI() {
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
+    // Record user message for style analysis
+    if (styleAdaptationEnabled) {
+      speakMyStyle.recordMessage(input);
+    }
+
     const newMessage = { text: input, sender: "user" as const };
     setMessages((prev) => [...prev, newMessage]);
     setInput("");
@@ -264,7 +286,9 @@ export default function VexaAI() {
           onSendMessage={handleSendMessage} 
           isSpeaking={isSpeaking} 
           voiceRecognitionActive={voiceRecognitionActive} 
-          setVoiceRecognitionActive={setVoiceRecognitionActive} 
+          setVoiceRecognitionActive={setVoiceRecognitionActive}
+          styleAdaptationEnabled={styleAdaptationEnabled}
+          setStyleAdaptationEnabled={setStyleAdaptationEnabled} 
           canvasRef={canvasRef}
         />
 

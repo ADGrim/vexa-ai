@@ -1,0 +1,58 @@
+// Speak My Style: track user messages and adjust AI response style
+let speakMyStyleEnabled = false;
+const userMessages = [];
+
+// Toggle Speak My Style mode on/off
+function setSpeakMyStyleMode(on) {
+  speakMyStyleEnabled = on;
+}
+
+// Record a new user message for style analysis
+function recordUserMessage(message) {
+  userMessages.push(message);
+}
+
+// Adjust an AI response's style to mimic user, if mode is enabled
+function styleAIResponse(response) {
+  if (!speakMyStyleEnabled || userMessages.length === 0) {
+    return response;  // no adjustment if mode is off or no user history
+  }
+  const lastMsg = userMessages[userMessages.length - 1];
+
+  // 1. Mimic excited tone: if user's last message has "!" (exclamation), add "!" to AI response
+  if (lastMsg.includes('!')) {
+    if (!response.endsWith('!')) {
+      // Replace a period at end with exclamation or add a new "!"
+      response = response.replace(/[.?\s]*$/, '') + '!';
+    }
+  }
+
+  // 2. Mimic smiley usage: if user often uses ":)" or "😊", append a smiley to AI response
+  if (lastMsg.includes(':)') || lastMsg.includes('😊')) {
+    response = response.replace(/[.?\s]*$/, '') + ' 😊';
+  }
+
+  // 3. Mimic shouting: if user message is mostly uppercase, respond in uppercase
+  const lettersOnly = lastMsg.replace(/[^A-Za-z]/g, '');
+  if (lettersOnly.length > 0) {
+    const uppercaseRatio = (lettersOnly.replace(/[^A-Z]/g, '').length) / lettersOnly.length;
+    if (uppercaseRatio > 0.5) {
+      response = response.toUpperCase();
+    }
+  }
+
+  // 4. Mimic inquisitive style: if majority of user messages are questions, add a question to AI response
+  const questionCount = userMessages.filter(msg => msg.trim().endsWith('?')).length;
+  if (questionCount / userMessages.length > 0.5) {
+    if (!response.trim().endsWith('?')) {
+      response = response.replace(/[.!\s]*$/, '') + '?';  // ensure it ends with a question mark
+    }
+  }
+
+  return response;
+}
+
+// Expose functions globally for use in other scripts
+window.setSpeakMyStyleMode = setSpeakMyStyleMode;
+window.recordUserMessage = recordUserMessage;
+window.styleAIResponse = styleAIResponse;
