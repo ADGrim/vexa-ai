@@ -119,6 +119,10 @@ export default function VexaLayout({
           onChange={onInputChange}
           onSubmit={onSendMessage}
           isTyping={isSpeaking}
+          voiceEnabled={voiceRecognitionActive}
+          onVoiceToggle={setVoiceRecognitionActive}
+          styleEnabled={styleAdaptationEnabled}
+          onStyleToggle={setStyleAdaptationEnabled}
           suggestions={[
             "Tell me a story",
             "What's the weather like?",
