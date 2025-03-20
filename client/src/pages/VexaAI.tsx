@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import VexaChatUI from "@/components/VexaChatUI";
+import VexaLayout from "@/components/VexaLayout";
 import { VoiceSelector } from "@/components/controls/VoiceSelector";
 import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
@@ -25,7 +25,7 @@ export default function VexaAI() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState<"nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer">("nova");
   const [rate, setRate] = useState(1);
-  const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false); // Added state
+  const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false);
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioStateRef = useRef<AudioState>({
@@ -254,32 +254,11 @@ export default function VexaAI() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background/80 p-4">
-      <div className="max-w-4xl mx-auto space-y-4">
-        <Card className="bg-background/40 backdrop-blur-md border-primary/20">
-          <VexaChatUI
-            messages={messages}
-            input={input}
-            onInputChange={setInput}
-            onSendMessage={handleSendMessage}
-            isSpeaking={isSpeaking}
-          />
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
+      <VexaLayout messages={messages} input={input} onInputChange={setInput} onSendMessage={handleSendMessage} isSpeaking={isSpeaking} voiceRecognitionActive={voiceRecognitionActive} setVoiceRecognitionActive={setVoiceRecognitionActive} canvasRef={canvasRef}/>
 
-          {/* Listening Circle */}
-          {voiceRecognitionActive && <ListeningCircle />} {/* Added ListeningCircle */}
-
-          {/* Audio Visualizer */}
-          <div className="px-4 pb-4">
-            <canvas
-              ref={canvasRef}
-              width={600}
-              height={100}
-              className="w-full h-[100px] rounded-lg bg-background/20 backdrop-blur-sm"
-            />
-          </div>
-        </Card>
-
-        {/* Voice Controls */}
+      {/* Voice Controls */}
+      <div className="fixed bottom-4 right-4">
         <VoiceSelector
           selectedVoice={selectedVoice}
           onVoiceChange={setSelectedVoice}
