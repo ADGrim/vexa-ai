@@ -77,6 +77,7 @@ export function ChatInputBar({
                     className="data-[state=checked]:bg-purple-500"
                   />
                   <Volume2 className="w-5 h-5 text-white/80" />
+                  <span className="text-sm text-white/80">Vexa</span>
                 </div>
               )}
 
