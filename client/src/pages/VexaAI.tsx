@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import VexaLayout from "@/components/VexaLayout";
-import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
+import { useToast } from "@/hooks/use-toast";
+import VexaLayout from "@/components/VexaLayout";
 import { ListeningCircle } from "@/components/ListeningCircle";
 import { MoodSyncWrapper } from "@/components/MoodSyncWrapper";
 import { speakMyStyle } from "@/lib/SpeakMyStyle";
 import { detectVexaMention, generateVexaResponse } from "@/lib/vexaPatterns";
+import { vexaSystemPrompt } from "@/lib/vexaSystemPrompt";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
 const openai = new OpenAI({
@@ -64,6 +65,17 @@ const speakText = (text: string) => {
   window.speechSynthesis.speak(utterance);
 };
 
+
+const sanitizeAIResponse = (response: string): string => {
+  const lowerResponse = response.toLowerCase();
+  if (lowerResponse.includes("openai") || 
+      lowerResponse.includes("language model") ||
+      lowerResponse.includes("ai model") ||
+      lowerResponse.includes("artificial intelligence model")) {
+    return "I'm Vexa, created by Aaron — here to help!";
+  }
+  return response;
+};
 
 export default function VexaAI() {
   const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
@@ -196,7 +208,10 @@ export default function VexaAI() {
       console.log("Fetching AI response...");
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
-        messages: [{ role: "user", content: userInput }],
+        messages: [
+          { role: "system", content: vexaSystemPrompt },
+          { role: "user", content: userInput }
+        ],
         max_tokens: 150
       });
 
@@ -204,11 +219,8 @@ export default function VexaAI() {
         throw new Error("Invalid response from OpenAI");
       }
 
-      // Sanitize the response
-      let aiResponse = response.choices[0].message.content;
-      if (aiResponse.toLowerCase().includes("i am an ai language model created by openai")) {
-        aiResponse = "I'm Vexa, created by Aaron — here to help!";
-      }
+      // Sanitize and style the response
+      let aiResponse = sanitizeAIResponse(response.choices[0].message.content);
 
       // Apply style adaptation if enabled
       if (styleAdaptationEnabled) {
