@@ -9,87 +9,74 @@ import { speakMyStyle } from "@/lib/SpeakMyStyle";
 import { detectVexaMention, generateVexaResponse } from "@/lib/vexaPatterns";
 import { vexaSystemPrompt } from "@/lib/vexaSystemPrompt";
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true
-});
-
-interface AudioState {
-  context: AudioContext | null;
-  analyser: AnalyserNode | null;
-  audio: HTMLAudioElement | null;
-  animationFrame: number | null;
+interface Message {
+  text: string;
+  sender: "user" | "ai";
+  isHtml?: boolean;
 }
 
-const speakText = (text: string) => {
-  if (!('speechSynthesis' in window)) {
-    console.error('Speech synthesis not supported');
-    return;
+// Add image generation function
+const generateImage = async (prompt: string): Promise<string> => {
+  if (!import.meta.env.VITE_OPENAI_API_KEY) {
+    throw new Error("OpenAI API key is required");
   }
 
-  // Cancel any ongoing speech
-  window.speechSynthesis.cancel();
+  const openai = new OpenAI({
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true
+  });
 
-  const utterance = new SpeechSynthesisUtterance(text);
+  try {
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: prompt,
+      n: 1,
+      size: "1024x1024",
+      quality: "standard",
+    });
 
-  // Try to find a British English voice
-  const voices = window.speechSynthesis.getVoices();
-  const britishVoice = voices.find(voice => 
-    (voice.lang === 'en-GB' || voice.name.toLowerCase().includes('british')) &&
-    !voice.name.toLowerCase().includes('google')
-  );
-
-  // Fallback to any English female voice
-  const fallbackVoice = voices.find(
-    voice => voice.name.toLowerCase().includes('female') && voice.lang.startsWith('en')
-  );
-
-  utterance.voice = britishVoice || fallbackVoice || voices[0];
-
-  // Configure voice settings
-  utterance.rate = 1;
-  utterance.pitch = 1;
-  utterance.volume = 1;
-
-  // Initialize voices if needed (some browsers require this)
-  if (voices.length === 0) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      const updatedVoices = window.speechSynthesis.getVoices();
-      utterance.voice = updatedVoices.find(voice => voice.lang === 'en-GB') || updatedVoices[0];
-      window.speechSynthesis.speak(utterance);
-    };
-  } else {
-    window.speechSynthesis.speak(utterance);
+    return response.data[0].url;
+  } catch (error) {
+    console.error("Image generation error:", error);
+    throw error;
   }
-};
-
-
-const sanitizeAIResponse = (response: string): string => {
-  const lowerResponse = response.toLowerCase();
-  if (lowerResponse.includes("openai") || 
-      lowerResponse.includes("language model") ||
-      lowerResponse.includes("ai model") ||
-      lowerResponse.includes("artificial intelligence model")) {
-    return "I'm Vexa, created by Adom — here to help!";
-  }
-  return response;
 };
 
 export default function VexaAI() {
-  const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false);
   const [styleAdaptationEnabled, setStyleAdaptationEnabled] = useState(false);
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const audioStateRef = useRef<AudioState>({
-    context: null,
-    analyser: null,
-    audio: null,
-    animationFrame: null
-  });
+
+  // Add handleGenerateImage function
+  const handleGenerateImage = async (prompt: string) => {
+    try {
+      const processingMessage: Message = {
+        text: `Generating image for: "${prompt}"`,
+        sender: "ai"
+      };
+      setMessages(prev => [...prev, processingMessage]);
+
+      const imageUrl = await generateImage(prompt);
+
+      const imageMessage: Message = {
+        text: `<img src="${imageUrl}" alt="Generated image" class="rounded-lg max-w-full h-auto shadow-lg"/>`,
+        sender: "ai",
+        isHtml: true
+      };
+
+      setMessages(prev => [...prev.slice(0, -1), imageMessage]);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error generating image",
+        description: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    }
+  };
 
   // Toggle style adaptation
   useEffect(() => {
@@ -241,13 +228,13 @@ export default function VexaAI() {
       speakMyStyle.recordMessage(input);
     }
 
-    const newMessage = { text: input, sender: "user" as const };
+    const newMessage: Message = { text: input, sender: "user" };
     setMessages((prev) => [...prev, newMessage]);
     setInput("");
 
     try {
       const aiResponse = await fetchAIResponse(input);
-      const aiMessage = { text: aiResponse, sender: "ai" as const };
+      const aiMessage: Message = { text: aiResponse, sender: "ai" };
       setMessages((prev) => [...prev, aiMessage]);
 
       // Only speak if voice is enabled
@@ -261,6 +248,17 @@ export default function VexaAI() {
         description: error instanceof Error ? error.message : "An unexpected error occurred"
       });
     }
+  };
+
+  const sanitizeAIResponse = (response: string): string => {
+    const lowerResponse = response.toLowerCase();
+    if (lowerResponse.includes("openai") ||
+        lowerResponse.includes("language model") ||
+        lowerResponse.includes("ai model") ||
+        lowerResponse.includes("artificial intelligence model")) {
+      return "I'm Vexa, created by Adom — here to help!";
+    }
+    return response;
   };
 
   const detectVexaMention = (userInput: string): boolean => {
@@ -280,6 +278,63 @@ export default function VexaAI() {
     return userInput.toLowerCase().includes("who created you") || userInput.toLowerCase().includes("who made you");
   };
 
+  const audioStateRef = useRef<AudioState>({
+    context: null,
+    analyser: null,
+    audio: null,
+    animationFrame: null
+  });
+
+  const speakText = (text: string) => {
+    if (!('speechSynthesis' in window)) {
+      console.error('Speech synthesis not supported');
+      return;
+    }
+
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    // Try to find a British English voice
+    const voices = window.speechSynthesis.getVoices();
+    const britishVoice = voices.find(voice =>
+      (voice.lang === 'en-GB' || voice.name.toLowerCase().includes('british')) &&
+      !voice.name.toLowerCase().includes('google')
+    );
+
+    // Fallback to any English female voice
+    const fallbackVoice = voices.find(
+      voice => voice.name.toLowerCase().includes('female') && voice.lang.startsWith('en')
+    );
+
+    utterance.voice = britishVoice || fallbackVoice || voices[0];
+
+    // Configure voice settings
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    // Initialize voices if needed (some browsers require this)
+    if (voices.length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        const updatedVoices = window.speechSynthesis.getVoices();
+        utterance.voice = updatedVoices.find(voice => voice.lang === 'en-GB') || updatedVoices[0];
+        window.speechSynthesis.speak(utterance);
+      };
+    } else {
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  interface AudioState {
+    context: AudioContext | null;
+    analyser: AnalyserNode | null;
+    audio: HTMLAudioElement | null;
+    animationFrame: number | null;
+  }
+
+
   return (
     <MoodSyncWrapper>
       <div className="min-h-screen transition-colors duration-1000">
@@ -288,6 +343,7 @@ export default function VexaAI() {
           input={input}
           onInputChange={setInput}
           onSendMessage={handleSendMessage}
+          onGenerateImage={handleGenerateImage}
           isSpeaking={isSpeaking}
           voiceRecognitionActive={voiceRecognitionActive}
           setVoiceRecognitionActive={setVoiceRecognitionActive}

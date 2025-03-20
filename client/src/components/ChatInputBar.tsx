@@ -1,12 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Send, Smile, Volume2, Wand2, Plus, Microscope } from "lucide-react";
+import { MicroscopeIcon, ImageIcon, PlusIcon, Send, Volume2, Wand2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ChatInputBarProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
+  onGenerateImage: (prompt: string) => Promise<void>;
   isTyping?: boolean;
   suggestions?: string[];
   voiceEnabled?: boolean;
@@ -19,6 +25,7 @@ export function ChatInputBar({
   value, 
   onChange, 
   onSubmit,
+  onGenerateImage,
   isTyping = false,
   suggestions = [],
   voiceEnabled = false,
@@ -26,6 +33,7 @@ export function ChatInputBar({
   styleEnabled = false,
   onStyleToggle
 }: ChatInputBarProps) {
+  const [imagePrompt, setImagePrompt] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,6 +55,13 @@ export function ChatInputBar({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       onSubmit();
+    }
+  };
+
+  const handleGenerateImage = async () => {
+    const prompt = window.prompt("What kind of image would you like me to generate?");
+    if (prompt) {
+      await onGenerateImage(prompt);
     }
   };
 
@@ -77,7 +92,7 @@ export function ChatInputBar({
           <>
             <div className="flex items-center gap-4">
               {onVoiceToggle && (
-                <div className="flex items-center gap-2 transition-transform duration-200 hover:scale-102 cursor-pointer">
+                <div className="flex items-center gap-2">
                   <Switch 
                     checked={voiceEnabled} 
                     onCheckedChange={onVoiceToggle}
@@ -89,7 +104,7 @@ export function ChatInputBar({
               )}
 
               {onStyleToggle && (
-                <div className="flex items-center gap-2 transition-transform duration-200 hover:scale-102 cursor-pointer">
+                <div className="flex items-center gap-2">
                   <Switch 
                     checked={styleEnabled} 
                     onCheckedChange={onStyleToggle}
@@ -105,31 +120,47 @@ export function ChatInputBar({
         )}
 
         <div className="flex items-center gap-3">
-          <label className="rounded-full p-2 hover:bg-white/5 cursor-pointer transition-all duration-200">
-            <Plus className="w-6 h-6 text-white/80" />
-            <input
-              type="file"
-              multiple
-              accept="image/*,.pdf,.docx,.txt"
-              className="hidden"
-              onChange={handleFileUpload}
-            />
-          </label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <label className="rounded-full p-2 hover:bg-white/5 cursor-pointer transition-all duration-200">
+                <PlusIcon className="w-6 h-6 text-white/80" />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf,.docx,.txt"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+              </label>
+            </TooltipTrigger>
+            <TooltipContent>Upload files</TooltipContent>
+          </Tooltip>
 
-          <Button
-            onClick={() => console.log("Trigger deep dive")}
-            className="rounded-full p-2 hover:bg-white/5 transition-all duration-200"
-            variant="ghost"
-          >
-            <Microscope className="w-6 h-6 text-white/80" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => console.log("Trigger deep dive")}
+                className="rounded-full p-2 hover:bg-purple-500/10 transition-all duration-200"
+                variant="ghost"
+              >
+                <MicroscopeIcon className="w-6 h-6 text-purple-500" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Deep dive analysis</TooltipContent>
+          </Tooltip>
 
-          <Button
-            className="rounded-full p-2 hover:bg-white/5 transition-all duration-200 hover:shadow-sm"
-            variant="ghost"
-          >
-            <Smile className="w-6 h-6 text-white/80" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={handleGenerateImage}
+                className="rounded-full p-2 hover:bg-emerald-500/10 transition-all duration-200"
+                variant="ghost"
+              >
+                <ImageIcon className="w-6 h-6 text-emerald-500" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Generate image</TooltipContent>
+          </Tooltip>
 
           <div className="flex-1 relative">
             <textarea

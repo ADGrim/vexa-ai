@@ -2,12 +2,20 @@ import React from 'react';
 import { TypingIndicator } from './TypingIndicator';
 import { ChatInputBar } from './ChatInputBar';
 import { VoiceActivationState } from './VoiceActivationState';
+import { TooltipProvider } from "@/components/ui/tooltip";
+
+interface Message {
+  text: string;
+  sender: "user" | "ai";
+  isHtml?: boolean;
+}
 
 interface VexaLayoutProps {
-  messages: Array<{ text: string; sender: "user" | "ai" }>;
+  messages: Message[];
   input: string;
   onInputChange: (value: string) => void;
   onSendMessage: () => void;
+  onGenerateImage: (prompt: string) => Promise<void>;
   isSpeaking: boolean;
   voiceRecognitionActive: boolean;
   setVoiceRecognitionActive: (active: boolean) => void;
@@ -21,6 +29,7 @@ export default function VexaLayout({
   input,
   onInputChange,
   onSendMessage,
+  onGenerateImage,
   isSpeaking,
   voiceRecognitionActive,
   setVoiceRecognitionActive,
@@ -42,7 +51,11 @@ export default function VexaLayout({
                 : "bg-blue-500/20 backdrop-blur-sm text-white"
             } p-3 rounded-xl shadow-xl max-w-[80%] transition-all duration-200 hover:shadow-2xl`}
           >
-            {msg.text}
+            {msg.isHtml ? (
+              <div dangerouslySetInnerHTML={{ __html: msg.text }} />
+            ) : (
+              msg.text
+            )}
           </div>
         ))}
         {isSpeaking && <TypingIndicator />}
@@ -57,22 +70,25 @@ export default function VexaLayout({
         />
       </div>
 
-      <ChatInputBar
-        value={input}
-        onChange={onInputChange}
-        onSubmit={onSendMessage}
-        isTyping={isSpeaking}
-        voiceEnabled={voiceRecognitionActive}
-        onVoiceToggle={setVoiceRecognitionActive}
-        styleEnabled={styleAdaptationEnabled}
-        onStyleToggle={setStyleAdaptationEnabled}
-        suggestions={[
-          "Tell me a story",
-          "What's the weather like?",
-          "How can you help me?",
-          "Let's chat"
-        ]}
-      />
+      <TooltipProvider>
+        <ChatInputBar
+          value={input}
+          onChange={onInputChange}
+          onSubmit={onSendMessage}
+          onGenerateImage={onGenerateImage}
+          isTyping={isSpeaking}
+          voiceEnabled={voiceRecognitionActive}
+          onVoiceToggle={setVoiceRecognitionActive}
+          styleEnabled={styleAdaptationEnabled}
+          onStyleToggle={setStyleAdaptationEnabled}
+          suggestions={[
+            "Tell me a story",
+            "What's the weather like?",
+            "How can you help me?",
+            "Let's chat"
+          ]}
+        />
+      </TooltipProvider>
     </div>
   );
 }
