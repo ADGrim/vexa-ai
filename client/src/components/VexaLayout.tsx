@@ -1,5 +1,4 @@
 import React from 'react';
-import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { ListeningCircle } from './ListeningCircle';
 import { SidebarWaveIcon } from './SidebarWaveIcon';
@@ -8,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Wand2 } from 'lucide-react';
 import { AnimatedMicIcon } from './icons/AnimatedMicIcon';
 import { motion } from 'framer-motion';
+import { ChatInputBar } from './ChatInputBar';
 
 interface VexaLayoutProps {
   messages: Array<{ text: string; sender: "user" | "ai" }>;
@@ -120,13 +120,11 @@ export default function VexaLayout({
         </div>
 
         {/* Chat input */}
-        <div className="p-4">
-          <ChatInput
-            value={input}
-            onChange={onInputChange}
-            onSubmit={onSendMessage}
-          />
-        </div>
+        <ChatInputBar
+          value={input}
+          onChange={onInputChange}
+          onSubmit={onSendMessage}
+        />
       </div>
     </div>
   );
