@@ -26,9 +26,9 @@ export default function VexaLayout({
   canvasRef
 }: VexaLayoutProps) {
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen">
       {/* Sidebar */}
-      <aside className="w-20 bg-gray-800 bg-opacity-50 backdrop-blur-lg flex flex-col items-center py-6 space-y-10 shadow-xl">
+      <aside className="w-20 bg-black/20 backdrop-blur-lg flex flex-col items-center py-6 space-y-10 shadow-xl">
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500"></div>
         <SidebarWaveIcon />
         <button className="hover:opacity-80 text-2xl">📋</button>
@@ -52,8 +52,8 @@ export default function VexaLayout({
               key={index}
               className={`${
                 msg.sender === "user"
-                  ? "bg-[#5b2c6f] ml-auto"
-                  : "bg-[#1c1c1c]"
+                  ? "bg-purple-600/90 text-white ml-auto"
+                  : "bg-black/20 backdrop-blur-sm"
               } p-3 rounded-xl shadow-xl max-w-md`}
             >
               {msg.text}
@@ -69,7 +69,7 @@ export default function VexaLayout({
             ref={canvasRef}
             width={600}
             height={100}
-            className="w-full h-[100px] rounded-lg bg-gray-800 bg-opacity-50"
+            className="w-full h-[100px] rounded-lg bg-black/10 backdrop-blur-sm"
           />
         </div>
 

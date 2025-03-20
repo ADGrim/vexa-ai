@@ -4,7 +4,8 @@ import VexaLayout from "@/components/VexaLayout";
 import { VoiceSelector } from "@/components/controls/VoiceSelector";
 import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
-import { ListeningCircle } from "@/components/ListeningCircle"; // Added import
+import { ListeningCircle } from "@/components/ListeningCircle";
+import { MoodSyncWrapper } from "@/components/MoodSyncWrapper";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
 const openai = new OpenAI({
@@ -254,19 +255,30 @@ export default function VexaAI() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
-      <VexaLayout messages={messages} input={input} onInputChange={setInput} onSendMessage={handleSendMessage} isSpeaking={isSpeaking} voiceRecognitionActive={voiceRecognitionActive} setVoiceRecognitionActive={setVoiceRecognitionActive} canvasRef={canvasRef}/>
-
-      {/* Voice Controls */}
-      <div className="fixed bottom-4 right-4">
-        <VoiceSelector
-          selectedVoice={selectedVoice}
-          onVoiceChange={setSelectedVoice}
-          rate={rate}
-          onRateChange={setRate}
-          onTest={testVoice}
+    <MoodSyncWrapper>
+      <div className="min-h-screen transition-colors duration-1000">
+        <VexaLayout 
+          messages={messages} 
+          input={input} 
+          onInputChange={setInput} 
+          onSendMessage={handleSendMessage} 
+          isSpeaking={isSpeaking} 
+          voiceRecognitionActive={voiceRecognitionActive} 
+          setVoiceRecognitionActive={setVoiceRecognitionActive} 
+          canvasRef={canvasRef}
         />
+
+        {/* Voice Controls */}
+        <div className="fixed bottom-4 right-4">
+          <VoiceSelector
+            selectedVoice={selectedVoice}
+            onVoiceChange={setSelectedVoice}
+            rate={rate}
+            onRateChange={setRate}
+            onTest={testVoice}
+          />
+        </div>
       </div>
-    </div>
+    </MoodSyncWrapper>
   );
 }
