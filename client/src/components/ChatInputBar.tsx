@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Send, Smile, Volume2, Wand2 } from "lucide-react";
+import { Send, Smile, Volume2, Wand2, Plus, Microscope } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 interface ChatInputBarProps {
   value: string;
@@ -28,6 +27,14 @@ export function ChatInputBar({
   onStyleToggle
 }: ChatInputBarProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      // Handle file upload here
+      console.log("Uploaded files:", files);
+    }
+  };
 
   useEffect(() => {
     if (inputRef.current) {
@@ -98,6 +105,25 @@ export function ChatInputBar({
         )}
 
         <div className="flex items-center gap-3">
+          <label className="rounded-full p-2 hover:bg-white/5 cursor-pointer transition-all duration-200">
+            <Plus className="w-6 h-6 text-white/80" />
+            <input
+              type="file"
+              multiple
+              accept="image/*,.pdf,.docx,.txt"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
+          </label>
+
+          <Button
+            onClick={() => console.log("Trigger deep dive")}
+            className="rounded-full p-2 hover:bg-white/5 transition-all duration-200"
+            variant="ghost"
+          >
+            <Microscope className="w-6 h-6 text-white/80" />
+          </Button>
+
           <Button
             className="rounded-full p-2 hover:bg-white/5 transition-all duration-200 hover:shadow-sm"
             variant="ghost"
