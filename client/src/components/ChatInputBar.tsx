@@ -18,9 +18,9 @@ export function ChatInputBar({ value, onChange, onSubmit }: ChatInputBarProps) {
   };
 
   return (
-    <div className="w-full flex items-center gap-2 p-3 bg-gray-800/10 backdrop-blur-sm sticky bottom-0 border border-gray-700/20">
+    <div className="w-full flex items-center gap-2 p-3 border-t bg-white sticky bottom-0">
       <Input
-        className="flex-1 rounded-2xl px-4 py-3 text-base border-none bg-gray-800/20 backdrop-blur-sm text-white focus-visible:ring-1 focus-visible:ring-purple-500"
+        className="flex-1 rounded-2xl px-4 py-3 text-base border shadow-sm focus-visible:ring-1 focus-visible:ring-blue-500"
         placeholder="Send a message..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -28,7 +28,7 @@ export function ChatInputBar({ value, onChange, onSubmit }: ChatInputBarProps) {
       />
       <Button
         onClick={onSubmit}
-        className="rounded-full p-2 hover:bg-purple-500/20 transition text-white"
+        className="rounded-full p-2 hover:bg-blue-100 transition"
         variant="ghost"
         disabled={!value.trim()}
       >
