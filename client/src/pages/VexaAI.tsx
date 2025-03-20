@@ -54,10 +54,12 @@ const speakText = (text: string) => {
 
   // Add event handlers
   utterance.onstart = () => {
+    console.log('Started speaking');
     setIsSpeaking(true);
   };
 
   utterance.onend = () => {
+    console.log('Finished speaking');
     setIsSpeaking(false);
   };
 
@@ -66,7 +68,16 @@ const speakText = (text: string) => {
     setIsSpeaking(false);
   };
 
-  window.speechSynthesis.speak(utterance);
+  // Initialize voices if needed (some browsers require this)
+  if (voices.length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      const updatedVoices = window.speechSynthesis.getVoices();
+      utterance.voice = updatedVoices.find(voice => voice.lang === 'en-GB') || updatedVoices[0];
+      window.speechSynthesis.speak(utterance);
+    };
+  } else {
+    window.speechSynthesis.speak(utterance);
+  }
 };
 
 
