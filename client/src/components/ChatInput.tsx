@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 
 interface ChatInputProps {
-  onSendMessage?: (message: string) => void;
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
 }
 
-export function ChatInput({ onSendMessage }: ChatInputProps = {}) {
-  const [message, setMessage] = useState('');
-
+export function ChatInput({ value, onChange, onSubmit }: ChatInputProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && onSendMessage) {
-      onSendMessage(message);
-      setMessage('');
+    if (value.trim()) {
+      onSubmit();
     }
   };
 
@@ -19,17 +18,17 @@ export function ChatInput({ onSendMessage }: ChatInputProps = {}) {
     <form onSubmit={handleSubmit} className="relative">
       <input
         type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         placeholder="Type your message..."
-        className="w-full p-4 rounded-full bg-gray-800 border-none focus:ring-2 focus:ring-purple-600 placeholder-gray-400 pr-16"
+        className="w-full p-4 rounded-full bg-black/10 backdrop-blur-sm border-none focus:ring-2 focus:ring-purple-600 placeholder-gray-400 pr-16"
       />
       <button
         type="submit"
         className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-purple-500 to-blue-500 p-3 rounded-full hover:opacity-80 transition shadow-md"
       >
         <svg
-          className="w-5 h-5"
+          className="w-5 h-5 text-white"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

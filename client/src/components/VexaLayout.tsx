@@ -5,6 +5,7 @@ import { ListeningCircle } from './ListeningCircle';
 import { SidebarWaveIcon } from './SidebarWaveIcon';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Mic, Wand2 } from 'lucide-react';
 
 interface VexaLayoutProps {
   messages: Array<{ text: string; sender: "user" | "ai" }>;
@@ -37,13 +38,31 @@ export default function VexaLayout({
       <aside className="w-20 bg-black/20 backdrop-blur-lg flex flex-col items-center py-6 space-y-10 shadow-xl">
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500"></div>
         <SidebarWaveIcon />
+
+        {/* Voice Recognition Toggle */}
+        <div className="flex flex-col items-center gap-2">
+          <Switch
+            checked={voiceRecognitionActive}
+            onCheckedChange={setVoiceRecognitionActive}
+            className="data-[state=checked]:bg-purple-500"
+          />
+          <Label className="text-xs text-center flex items-center gap-1">
+            <Mic className="w-3 h-3" />
+            Voice
+          </Label>
+        </div>
+
+        {/* Style Adaptation Toggle */}
         <div className="flex flex-col items-center gap-2">
           <Switch
             checked={styleAdaptationEnabled}
             onCheckedChange={setStyleAdaptationEnabled}
             className="data-[state=checked]:bg-purple-500"
           />
-          <Label className="text-xs text-center">Style Match</Label>
+          <Label className="text-xs text-center flex items-center gap-1">
+            <Wand2 className="w-3 h-3" />
+            Style
+          </Label>
         </div>
       </aside>
 
