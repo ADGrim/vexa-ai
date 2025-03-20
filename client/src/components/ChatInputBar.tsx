@@ -44,10 +44,10 @@ export function ChatInputBar({
   };
 
   return (
-    <div className="w-full sticky bottom-0 backdrop-blur-xl bg-white/85 border-t border-black/5 shadow-lg transition-all duration-300 hover:bg-white/90">
+    <div className="w-full sticky bottom-0 backdrop-blur-xl bg-black/85 border-t border-white/5 shadow-lg transition-all duration-300 hover:bg-black/90">
       <div className="p-4 space-y-3">
         {isTyping && (
-          <div className="text-sm text-gray-400 animate-pulse pl-2">
+          <div className="text-sm text-white/60 animate-pulse pl-2">
             Vexa is thinking...
           </div>
         )}
@@ -58,7 +58,7 @@ export function ChatInputBar({
               <button
                 key={index}
                 onClick={() => onChange(suggestion)}
-                className="text-sm bg-black/5 hover:bg-black/10 px-3 py-1 rounded-full transition-all duration-200 hover:shadow-sm text-gray-600"
+                className="text-sm bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition-all duration-200 hover:shadow-sm text-white"
               >
                 {suggestion}
               </button>
@@ -76,8 +76,8 @@ export function ChatInputBar({
                     onCheckedChange={onVoiceToggle}
                     className="data-[state=checked]:bg-purple-500"
                   />
-                  <Volume2 className="w-5 h-5 text-gray-500" />
-                  <span className="text-sm text-gray-500">Vexa Voice</span>
+                  <Volume2 className="w-5 h-5 text-white/80" />
+                  <span className="text-sm text-white/80">Vexa Voice</span>
                 </div>
               )}
 
@@ -88,27 +88,27 @@ export function ChatInputBar({
                     onCheckedChange={onStyleToggle}
                     className="data-[state=checked]:bg-purple-500"
                   />
-                  <Wand2 className="w-5 h-5 text-gray-500" />
-                  <span className="text-sm text-gray-500">Speak My Style</span>
+                  <Wand2 className="w-5 h-5 text-white/80" />
+                  <span className="text-sm text-white/80">Speak My Style</span>
                 </div>
               )}
             </div>
-            <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-black/10 to-transparent" />
+            <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </>
         )}
 
         <div className="flex items-center gap-3">
           <Button
-            className="rounded-full p-2 hover:bg-black/5 transition-all duration-200 hover:shadow-sm"
+            className="rounded-full p-2 hover:bg-white/5 transition-all duration-200 hover:shadow-sm"
             variant="ghost"
           >
-            <Smile className="w-6 h-6 text-gray-500" />
+            <Smile className="w-6 h-6 text-white/80" />
           </Button>
 
           <div className="flex-1 relative">
             <textarea
               ref={inputRef}
-              className="w-full min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-base bg-black/5 border-none focus:ring-2 focus:ring-purple-500/30 resize-none overflow-hidden text-gray-700 placeholder-gray-400"
+              className="w-full min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-base bg-white/5 border-none focus:ring-2 focus:ring-purple-500/30 resize-none overflow-hidden text-white placeholder-white/40"
               placeholder="Type a message..."
               value={value}
               onChange={(e) => onChange(e.target.value)}
