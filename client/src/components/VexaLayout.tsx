@@ -8,6 +8,7 @@ import { Wand2 } from 'lucide-react';
 import { AnimatedMicIcon } from './icons/AnimatedMicIcon';
 import { motion } from 'framer-motion';
 import { ChatInputBar } from './ChatInputBar';
+import { VoiceActivationState } from './VoiceActivationState';
 
 interface VexaLayoutProps {
   messages: Array<{ text: string; sender: "user" | "ai" }>;
@@ -36,12 +37,11 @@ export default function VexaLayout({
 }: VexaLayoutProps) {
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
+      <VoiceActivationState isActive={voiceRecognitionActive} />
       <aside className="w-20 bg-black/20 backdrop-blur-lg flex flex-col items-center py-6 space-y-10 shadow-xl">
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500"></div>
         <SidebarWaveIcon />
 
-        {/* Voice Recognition Toggle */}
         <motion.div 
           className="flex flex-col items-center gap-2"
           whileHover={{ scale: 1.05 }}
@@ -60,7 +60,6 @@ export default function VexaLayout({
           </div>
         </motion.div>
 
-        {/* Style Adaptation Toggle */}
         <motion.div 
           className="flex flex-col items-center gap-2"
           whileHover={{ scale: 1.05 }}
@@ -80,9 +79,7 @@ export default function VexaLayout({
         </motion.div>
       </aside>
 
-      {/* Chat area */}
       <div className="flex-1 flex flex-col relative">
-        {/* Top profile */}
         <div className="absolute top-4 right-4">
           <img
             src="https://i.pravatar.cc/40"
@@ -91,7 +88,6 @@ export default function VexaLayout({
           />
         </div>
 
-        {/* Chat bubbles container */}
         <div className="flex-1 overflow-y-auto scroll-smooth p-6 space-y-4 mt-4">
           {messages.map((msg, index) => (
             <div
@@ -109,7 +105,6 @@ export default function VexaLayout({
           {voiceRecognitionActive && <ListeningCircle />}
         </div>
 
-        {/* Audio Visualizer */}
         <div className="px-6 py-2">
           <canvas
             ref={canvasRef}
@@ -119,7 +114,6 @@ export default function VexaLayout({
           />
         </div>
 
-        {/* Chat input */}
         <ChatInputBar
           value={input}
           onChange={onInputChange}
