@@ -1,0 +1,69 @@
+// Main application script: handles user input, messaging, and feature integration
+window.addEventListener('DOMContentLoaded', () => {
+  const chatBox   = document.getElementById('chat');
+  const input     = document.getElementById('userInput');
+  const sendBtn   = document.getElementById('sendBtn');
+  const styleToggle = document.getElementById('styleToggle');
+
+  // Ensure background color is set on load (Mood Sync)
+  if (window.applyMoodSync) {
+    window.applyMoodSync();
+  }
+
+  // Toggle Speak My Style mode when checkbox is changed
+  styleToggle.addEventListener('change', (e) => {
+    window.setSpeakMyStyleMode(e.target.checked);
+  });
+
+  // Helper: append a message div to the chat box
+  function addMessage(text, sender) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message ' + sender;
+    msgDiv.textContent = text;
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;  // scroll to bottom on new message
+  }
+
+  // Simple AI response generator (rule-based placeholder)
+  function generateAIResponse(userMsg) {
+    const msg = userMsg.trim().toLowerCase();
+    if (msg === '') return "";
+    let response;
+    if (msg.endsWith('?')) {
+      response = "That's a good question.";
+    } else if (msg.includes('hello') || msg.includes('hi')) {
+      response = "Hello there!";
+    } else {
+      response = "I see.";
+    }
+    return response;
+  }
+
+  // Send message on button click or Enter key
+  function handleSend() {
+    const userText = input.value.trim();
+    if (userText === "") return;  // do nothing if input is empty
+
+    // Display user's message
+    addMessage(userText, 'user');
+    // Record the user message for style analysis
+    window.recordUserMessage(userText);
+
+    // Generate an AI response and adjust it if Speak My Style is enabled
+    let aiReply = generateAIResponse(userText);
+    aiReply = window.styleAIResponse(aiReply);
+
+    // Display AI's response
+    addMessage(aiReply, 'ai');
+    // Clear the input field
+    input.value = "";
+  }
+
+  sendBtn.addEventListener('click', handleSend);
+  // Also allow pressing "Enter" to send the message
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      handleSend();
+    }
+  });
+});

@@ -59,7 +59,7 @@ export default function VexaLayout({
         </div>
 
         {/* Chat bubbles container */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 mt-4">
+        <div className="flex-1 overflow-y-auto scroll-smooth p-6 space-y-4 mt-4">
           {messages.map((msg, index) => (
             <div
               key={index}
@@ -67,7 +67,7 @@ export default function VexaLayout({
                 msg.sender === "user"
                   ? "bg-purple-600/90 text-white ml-auto"
                   : "bg-black/20 backdrop-blur-sm"
-              } p-3 rounded-xl shadow-xl max-w-md`}
+              } p-3 rounded-xl shadow-xl max-w-[80%] transition-all duration-200 hover:shadow-2xl`}
             >
               {msg.text}
             </div>
