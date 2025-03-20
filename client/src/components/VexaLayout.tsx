@@ -55,7 +55,7 @@ export default function VexaLayout({
           <div className="relative">
             <AnimatedMicIcon isActive={voiceRecognitionActive} />
             <Label className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap">
-              {voiceRecognitionActive ? 'Listening...' : 'Voice'}
+              {voiceRecognitionActive ? 'Listening...' : 'Vexa'}
             </Label>
           </div>
         </motion.div>
