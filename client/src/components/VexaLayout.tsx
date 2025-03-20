@@ -5,7 +5,9 @@ import { ListeningCircle } from './ListeningCircle';
 import { SidebarWaveIcon } from './SidebarWaveIcon';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Mic, Wand2 } from 'lucide-react';
+import { Wand2 } from 'lucide-react';
+import { AnimatedMicIcon } from './icons/AnimatedMicIcon';
+import { motion } from 'framer-motion';
 
 interface VexaLayoutProps {
   messages: Array<{ text: string; sender: "user" | "ai" }>;
@@ -40,30 +42,42 @@ export default function VexaLayout({
         <SidebarWaveIcon />
 
         {/* Voice Recognition Toggle */}
-        <div className="flex flex-col items-center gap-2">
+        <motion.div 
+          className="flex flex-col items-center gap-2"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
           <Switch
             checked={voiceRecognitionActive}
             onCheckedChange={setVoiceRecognitionActive}
             className="data-[state=checked]:bg-purple-500"
           />
-          <Label className="text-xs text-center flex items-center gap-1">
-            <Mic className="w-3 h-3" />
-            Voice
-          </Label>
-        </div>
+          <div className="relative">
+            <AnimatedMicIcon isActive={voiceRecognitionActive} />
+            <Label className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap">
+              {voiceRecognitionActive ? 'Listening...' : 'Voice'}
+            </Label>
+          </div>
+        </motion.div>
 
         {/* Style Adaptation Toggle */}
-        <div className="flex flex-col items-center gap-2">
+        <motion.div 
+          className="flex flex-col items-center gap-2"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
           <Switch
             checked={styleAdaptationEnabled}
             onCheckedChange={setStyleAdaptationEnabled}
             className="data-[state=checked]:bg-purple-500"
           />
-          <Label className="text-xs text-center flex items-center gap-1">
-            <Wand2 className="w-3 h-3" />
-            Style
-          </Label>
-        </div>
+          <div className="relative">
+            <Wand2 className={`w-6 h-6 ${styleAdaptationEnabled ? 'text-purple-500' : ''}`} />
+            <Label className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap">
+              Style
+            </Label>
+          </div>
+        </motion.div>
       </aside>
 
       {/* Chat area */}
