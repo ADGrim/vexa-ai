@@ -38,8 +38,8 @@ export default function VexaLayout({
             key={index}
             className={`${
               msg.sender === "user"
-                ? "bg-purple-600/90 text-white ml-auto"
-                : "bg-blue-500/20 backdrop-blur-sm"
+                ? "bg-purple-600/50 text-white ml-auto"
+                : "bg-blue-500/20 backdrop-blur-sm text-white"
             } p-3 rounded-xl shadow-xl max-w-[80%] transition-all duration-200 hover:shadow-2xl`}
           >
             {msg.text}
