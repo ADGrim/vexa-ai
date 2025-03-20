@@ -1,11 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { ChatMessage } from "@/components/chat/ChatMessage";
+import VexaChatUI from "@/components/VexaChatUI";
 import { VoiceSelector } from "@/components/controls/VoiceSelector";
-import { motion } from "framer-motion";
-import { Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import OpenAI from "openai";
 
@@ -37,7 +33,6 @@ export default function VexaAI() {
     animationFrame: null
   });
 
-  // Cleanup audio resources on unmount
   useEffect(() => {
     return () => {
       cleanupAudio();
@@ -46,27 +41,22 @@ export default function VexaAI() {
 
   const cleanupAudio = () => {
     const { audio, context, animationFrame } = audioStateRef.current;
-
     if (audio) {
       audio.pause();
       audio.src = "";
     }
-
     if (context?.state !== 'closed') {
       context?.close();
     }
-
     if (animationFrame) {
       cancelAnimationFrame(animationFrame);
     }
-
     audioStateRef.current = {
       context: null,
       analyser: null,
       audio: null,
       animationFrame: null
     };
-
     setIsSpeaking(false);
   };
 
@@ -75,12 +65,10 @@ export default function VexaAI() {
       if (!audioStateRef.current.context) {
         audioStateRef.current.context = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-
       if (!audioStateRef.current.analyser) {
         audioStateRef.current.analyser = audioStateRef.current.context.createAnalyser();
         audioStateRef.current.analyser.fftSize = 256;
       }
-
       return true;
     } catch (error) {
       console.error("Failed to setup audio context:", error);
@@ -119,14 +107,11 @@ export default function VexaAI() {
 
       for (let i = 0; i < bufferLength; i++) {
         const barHeight = (dataArray[i] / 255) * canvas.height;
-
         const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight);
         gradient.addColorStop(0, 'hsl(var(--primary) / 0.3)');
         gradient.addColorStop(1, 'hsl(var(--primary))');
-
         ctx.fillStyle = gradient;
         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-
         x += barWidth + 1;
       }
     };
@@ -185,17 +170,14 @@ export default function VexaAI() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("OpenAI TTS Error:", errorData);
         throw new Error(errorData.error?.message || "Failed to generate speech");
       }
 
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
-
       const audio = new Audio(audioUrl);
       audioStateRef.current.audio = audio;
 
-      // Set up audio pipeline
       const source = audioStateRef.current.context!.createMediaElementSource(audio);
       source.connect(audioStateRef.current.analyser!);
       audioStateRef.current.analyser!.connect(audioStateRef.current.context!.destination);
@@ -206,7 +188,6 @@ export default function VexaAI() {
       };
 
       audio.onended = () => {
-        console.log("Audio playback ended");
         setIsSpeaking(false);
         URL.revokeObjectURL(audioUrl);
       };
@@ -220,7 +201,6 @@ export default function VexaAI() {
     } catch (error) {
       console.error("Speech synthesis error:", error);
       setIsSpeaking(false);
-
       if (error instanceof Error) {
         toast({
           variant: "destructive",
@@ -250,7 +230,7 @@ export default function VexaAI() {
     }
   };
 
-  const sendMessage = async () => {
+  const handleSendMessage = async () => {
     if (!input.trim()) return;
 
     const newMessage = { text: input, sender: "user" as const };
@@ -275,10 +255,13 @@ export default function VexaAI() {
     <div className="min-h-screen bg-gradient-to-b from-background to-background/80 p-4">
       <div className="max-w-4xl mx-auto space-y-4">
         <Card className="bg-background/40 backdrop-blur-md border-primary/20">
-          {/* Chat Messages Area */}
-          <div className="h-[60vh] overflow-y-auto p-4">
-            <ChatMessage messages={messages} isSpeaking={isSpeaking} />
-          </div>
+          <VexaChatUI
+            messages={messages}
+            input={input}
+            onInputChange={setInput}
+            onSendMessage={handleSendMessage}
+            isSpeaking={isSpeaking}
+          />
 
           {/* Audio Visualizer */}
           <div className="px-4 pb-4">
@@ -288,31 +271,6 @@ export default function VexaAI() {
               height={100}
               className="w-full h-[100px] rounded-lg bg-background/20 backdrop-blur-sm"
             />
-          </div>
-
-          {/* Message Input Area */}
-          <div className="p-4 bg-background/60 backdrop-blur-sm border-t border-primary/20">
-            <div className="flex gap-2 items-end">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message here..."
-                className="min-h-[60px] text-base bg-background/50 border-primary/20 resize-none"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-              />
-              <Button 
-                onClick={sendMessage}
-                size="icon"
-                className="h-[60px] w-[60px] bg-primary hover:bg-primary/90"
-              >
-                <Send className="h-5 w-5" />
-              </Button>
-            </div>
           </div>
         </Card>
 
