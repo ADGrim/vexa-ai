@@ -124,6 +124,13 @@ export default function VexaLayout({
           value={input}
           onChange={onInputChange}
           onSubmit={onSendMessage}
+          isTyping={isSpeaking}
+          suggestions={[
+            "Tell me a story",
+            "What's the weather like?",
+            "How can you help me?",
+            "Let's chat"
+          ]}
         />
       </div>
     </div>
