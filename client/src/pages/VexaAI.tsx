@@ -52,22 +52,6 @@ const speakText = (text: string) => {
   utterance.pitch = 1;
   utterance.volume = 1;
 
-  // Add event handlers
-  utterance.onstart = () => {
-    console.log('Started speaking');
-    setIsSpeaking(true);
-  };
-
-  utterance.onend = () => {
-    console.log('Finished speaking');
-    setIsSpeaking(false);
-  };
-
-  utterance.onerror = (event) => {
-    console.error('Speech synthesis error:', event);
-    setIsSpeaking(false);
-  };
-
   // Initialize voices if needed (some browsers require this)
   if (voices.length === 0) {
     window.speechSynthesis.onvoiceschanged = () => {
@@ -87,7 +71,7 @@ const sanitizeAIResponse = (response: string): string => {
       lowerResponse.includes("language model") ||
       lowerResponse.includes("ai model") ||
       lowerResponse.includes("artificial intelligence model")) {
-    return "I'm Vexa, created by Aaron — here to help!";
+    return "I'm Vexa, created by Adom — here to help!";
   }
   return response;
 };
@@ -211,12 +195,12 @@ export default function VexaAI() {
     try {
       // Check for creator questions first
       if (detectCreatorQuestion(userInput)) {
-        return "I was created by Aaron.";
+        return "I was created by Adom.";
       }
 
       // Check for direct Vexa questions or identity queries
       if (detectVexaMention(userInput) || userInput.toLowerCase().includes("who are you")) {
-        return "I'm Vexa, created by Aaron — your smart AI companion.";
+        return "I'm Vexa, created by Adom — your smart AI companion.";
       }
 
       // If no direct intercept, proceed with OpenAI API call
