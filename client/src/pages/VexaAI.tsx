@@ -39,8 +39,8 @@ const speakText = (text: string) => {
 
   // Try to set a female voice if available
   const voices = window.speechSynthesis.getVoices();
-  const femaleVoice = voices.find(voice => 
-    voice.name.toLowerCase().includes('female') || 
+  const femaleVoice = voices.find(voice =>
+    voice.name.toLowerCase().includes('female') ||
     voice.name.toLowerCase().includes('samantha')
   );
   if (femaleVoice) {
@@ -175,20 +175,24 @@ export default function VexaAI() {
     draw();
   };
 
-  // Update the fetchAIResponse function to include Vexa patterns
+  // Update the fetchAIResponse function to include custom interception
   const fetchAIResponse = async (userInput: string) => {
     if (!import.meta.env.VITE_OPENAI_API_KEY) {
       throw new Error("OpenAI API key is required");
     }
 
     try {
-      // Check for Vexa-specific patterns first
-      if (detectVexaMention(userInput)) {
-        const vexaResponse = generateVexaResponse(userInput);
-        return vexaResponse;
+      // Check for creator questions first
+      if (detectCreatorQuestion(userInput)) {
+        return "I was created by Aaron.";
       }
 
-      // If no Vexa-specific response, proceed with OpenAI API call
+      // Check for direct Vexa questions or identity queries
+      if (detectVexaMention(userInput) || userInput.toLowerCase().includes("who are you")) {
+        return "I'm Vexa, created by Aaron — your smart AI companion.";
+      }
+
+      // If no direct intercept, proceed with OpenAI API call
       console.log("Fetching AI response...");
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -200,8 +204,13 @@ export default function VexaAI() {
         throw new Error("Invalid response from OpenAI");
       }
 
-      // Apply style adaptation if enabled
+      // Sanitize the response
       let aiResponse = response.choices[0].message.content;
+      if (aiResponse.toLowerCase().includes("i am an ai language model created by openai")) {
+        aiResponse = "I'm Vexa, created by Aaron — here to help!";
+      }
+
+      // Apply style adaptation if enabled
       if (styleAdaptationEnabled) {
         aiResponse = speakMyStyle.styleResponse(aiResponse);
       }
@@ -252,6 +261,11 @@ export default function VexaAI() {
     // Implement your Vexa response generation logic here
     // This is a placeholder, replace with your actual logic
     return "This is a Vexa-specific response to: " + userInput;
+  };
+
+  const detectCreatorQuestion = (userInput: string): boolean => {
+    //Add your logic to detect creator questions here.  This is a placeholder.
+    return userInput.toLowerCase().includes("who created you") || userInput.toLowerCase().includes("who made you");
   };
 
   return (
