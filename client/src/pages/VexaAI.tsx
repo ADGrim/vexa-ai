@@ -33,20 +33,24 @@ const speakText = (text: string) => {
 
   const utterance = new SpeechSynthesisUtterance(text);
 
+  // Try to find a British English voice
+  const voices = window.speechSynthesis.getVoices();
+  const britishVoice = voices.find(voice => 
+    (voice.lang === 'en-GB' || voice.name.toLowerCase().includes('british')) &&
+    !voice.name.toLowerCase().includes('google')
+  );
+
+  // Fallback to any English female voice
+  const fallbackVoice = voices.find(
+    voice => voice.name.toLowerCase().includes('female') && voice.lang.startsWith('en')
+  );
+
+  utterance.voice = britishVoice || fallbackVoice || voices[0];
+
   // Configure voice settings
   utterance.rate = 1;
   utterance.pitch = 1;
   utterance.volume = 1;
-
-  // Try to set a female voice if available
-  const voices = window.speechSynthesis.getVoices();
-  const femaleVoice = voices.find(voice =>
-    voice.name.toLowerCase().includes('female') ||
-    voice.name.toLowerCase().includes('samantha')
-  );
-  if (femaleVoice) {
-    utterance.voice = femaleVoice;
-  }
 
   // Add event handlers
   utterance.onstart = () => {
@@ -251,8 +255,10 @@ export default function VexaAI() {
       const aiMessage = { text: aiResponse, sender: "ai" as const };
       setMessages((prev) => [...prev, aiMessage]);
 
-      // Speak the AI response
-      speakText(aiResponse);
+      // Only speak if voice is enabled
+      if (voiceRecognitionActive) {
+        speakText(aiResponse);
+      }
     } catch (error) {
       toast({
         variant: "destructive",
