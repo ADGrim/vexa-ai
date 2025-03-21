@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { SidebarWaveIcon } from "./SidebarWaveIcon";
+import { VexaAnimatedWave } from "./VexaAnimatedWave";
 
 interface VoiceActivationStateProps {
   isActive: boolean;
@@ -33,7 +33,7 @@ export function VoiceActivationState({ isActive, onClose }: VoiceActivationState
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <SidebarWaveIcon className="w-16 h-16 text-white wave-responding" />
+            <VexaAnimatedWave speaking={isActive} />
           </motion.div>
         </motion.div>
       )}
