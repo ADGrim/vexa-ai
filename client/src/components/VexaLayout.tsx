@@ -51,7 +51,7 @@ export default function VexaLayout({
       </div>
 
       {/* Fixed input area */}
-      <div className="bg-black/85 border-t border-white/5">
+      <div className="bg-black/85">
         <div className="max-w-5xl mx-auto">
           <canvas
             ref={canvasRef}
@@ -59,27 +59,26 @@ export default function VexaLayout({
             height={60}
             className="w-full h-[60px]"
           />
+          <TooltipProvider>
+            <ChatInputBar
+              value={input}
+              onChange={onInputChange}
+              onSubmit={onSendMessage}
+              onGenerateImage={onGenerateImage}
+              isTyping={isSpeaking}
+              voiceEnabled={voiceRecognitionActive}
+              onVoiceToggle={setVoiceRecognitionActive}
+              styleEnabled={styleAdaptationEnabled}
+              onStyleToggle={setStyleAdaptationEnabled}
+              suggestions={[
+                "Tell me about quantum physics",
+                "How does quantum entanglement work?",
+                "Explain superposition",
+                "What is wave-particle duality?"
+              ]}
+            />
+          </TooltipProvider>
         </div>
-
-        <TooltipProvider>
-          <ChatInputBar
-            value={input}
-            onChange={onInputChange}
-            onSubmit={onSendMessage}
-            onGenerateImage={onGenerateImage}
-            isTyping={isSpeaking}
-            voiceEnabled={voiceRecognitionActive}
-            onVoiceToggle={setVoiceRecognitionActive}
-            styleEnabled={styleAdaptationEnabled}
-            onStyleToggle={setStyleAdaptationEnabled}
-            suggestions={[
-              "Tell me about quantum physics",
-              "How does quantum entanglement work?",
-              "Explain superposition",
-              "What is wave-particle duality?"
-            ]}
-          />
-        </TooltipProvider>
       </div>
     </div>
   );
