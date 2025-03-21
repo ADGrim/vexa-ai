@@ -9,7 +9,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { FancyCloudBubble } from "./FancyCloudBubble";
-import VexaVoiceListener from './VexaVoiceListener';
+//import VexaVoiceListener from './VexaVoiceListener';
+import { VexaVoiceButton } from './VexaVoiceButton';
 
 interface ChatInputBarProps {
   value: string;
@@ -217,19 +218,13 @@ export function ChatInputBar({
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <VexaVoiceListener
-                onVexaRespond={async (speech) => {
-                  onChange(speech);
-                  onVoiceToggle?.(true);
-                  await onSubmit();
-                  onVoiceToggle?.(false);
-                  return ""; // Response handling is done in parent
-                }}
-                onListeningChange={(isListening) => onVoiceToggle?.(isListening)}
+              <VexaVoiceButton
+                onVoiceStart={() => onVoiceToggle?.(true)}
+                onVoiceEnd={() => onVoiceToggle?.(false)}
               />
             </TooltipTrigger>
             <TooltipContent>
-              {voiceEnabled ? 'Click to stop voice mode' : 'Click to start voice mode'}
+              {voiceEnabled ? 'Click to stop voice' : 'Click to start voice'}
             </TooltipContent>
           </Tooltip>
         </div>
