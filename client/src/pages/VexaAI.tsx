@@ -13,7 +13,6 @@ import { learnFromUserMessage, adjustResponseTone, getLearningSummary } from '@/
 import { isUnsafeRequest, safeResponse } from "@/lib/vexaSafety";
 import { vexaVoice } from "@/lib/vexaVoice";
 
-
 interface Message {
   text: string;
   sender: "user" | "ai";
@@ -250,7 +249,7 @@ export default function VexaAI() {
         });
 
         const response = await openai.chat.completions.create({
-          model: "gpt-4o",
+          model: "gpt-4o",  // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
           messages: [
             { role: "system", content: vexaSystemPrompt },
             { role: "user", content: userInput }
@@ -258,18 +257,20 @@ export default function VexaAI() {
           max_tokens: 400
         });
 
-        return response.choices[0].message.content ||
+        let aiResponse = response.choices[0].message.content ||
           "Great question! In quantum physics, things can exist in multiple states at once until observed — we call this superposition. It's like flipping a coin and it being both heads and tails until you look. Want me to explain more?";
+
+        return conversationalAdjustments(aiResponse);
       }
 
       // Check for creator questions
       if (detectCreatorQuestion(userInput)) {
-        return "I was created by Adom.";
+        return "I was created by Adom. 😊";
       }
 
       // Check for identity questions
       if (detectVexaMention(userInput) || lowerInput.includes("who are you")) {
-        return "I'm Vexa, created by Adom, and I specialize in explaining complex topics like quantum physics in simple ways. Ask me anything!";
+        return conversationalAdjustments("I'm Vexa, created by Adom, and I specialize in explaining complex topics like quantum physics in simple ways. Ask me anything!");
       }
 
       // Regular response through OpenAI with quantum focus
@@ -279,7 +280,7 @@ export default function VexaAI() {
       });
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o",  // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
         messages: [
           { role: "system", content: vexaSystemPrompt },
           { role: "user", content: userInput }
@@ -287,8 +288,10 @@ export default function VexaAI() {
         max_tokens: 150
       });
 
-      return sanitizeAIResponse(response.choices[0].message.content ||
+      let aiResponse = sanitizeAIResponse(response.choices[0].message.content ||
         "I'm Vexa, and I'd love to help explain quantum concepts in a way that makes sense. What would you like to know?");
+
+      return conversationalAdjustments(aiResponse);
     } catch (error: any) {
       console.error("OpenAI API Error:", error);
       throw error;
@@ -376,6 +379,12 @@ export default function VexaAI() {
     //Add your logic to detect creator questions here.  This is a placeholder.
     return userInput.toLowerCase().includes("who created you") || userInput.toLowerCase().includes("who made you");
   };
+
+  const conversationalAdjustments = (response: string): string => {
+    // Add your conversational adjustment logic here.  This is a placeholder.
+    return response;
+  };
+
 
   const audioStateRef = useRef<AudioState>({
     context: null,
