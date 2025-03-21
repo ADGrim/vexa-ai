@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mic } from "lucide-react";
+import { SidebarWaveIcon } from "./SidebarWaveIcon";
 
 interface VoiceChatButtonProps {
   onStartListening: () => void;
@@ -20,7 +20,7 @@ export function VoiceChatButton({ onStartListening, onStopListening, listening }
         {listening && (
           <div className="absolute inset-0 rounded-full bg-purple-500/20 animate-ping" />
         )}
-        <Mic className={`w-8 h-8 ${listening ? 'text-white' : 'text-white/90'}`} />
+        <SidebarWaveIcon />
       </button>
       <p className="text-center text-sm mt-2 text-white/60">
         {listening ? 'Listening...' : 'Tap to speak'}
