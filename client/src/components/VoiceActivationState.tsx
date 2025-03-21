@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
 import VexaAnimatedWaveButton from "./VexaAnimatedWaveButton";
-import AnimatedBlackHole from "./AnimatedBlackHole";
 
 interface VoiceActivationStateProps {
   isActive: boolean;
@@ -28,17 +27,13 @@ export function VoiceActivationState({ isActive, onClose }: VoiceActivationState
 
           {/* Central content */}
           <motion.div 
-            className="relative flex flex-col items-center gap-6"
+            className="relative"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
             <VexaAnimatedWaveButton speaking={isActive} onClick={(e) => e.stopPropagation()} />
-            <AnimatedBlackHole />
-            <p className="text-white/80 text-lg font-medium">
-              Vexa is ready to chat
-            </p>
           </motion.div>
         </motion.div>
       )}
