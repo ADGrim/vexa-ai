@@ -2,6 +2,7 @@ import React from 'react';
 import { TypingIndicator } from './TypingIndicator';
 import { ChatInputBar } from './ChatInputBar';
 import { VoiceActivationState } from './VoiceActivationState';
+import { VoiceChatButton } from './VoiceChatButton';
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface Message {
@@ -67,6 +68,14 @@ export default function VexaLayout({
           width={600}
           height={100}
           className="w-full h-[100px] rounded-lg bg-black/10 backdrop-blur-sm"
+        />
+      </div>
+
+      <div className="fixed bottom-32 right-6">
+        <VoiceChatButton
+          onStartListening={() => setVoiceRecognitionActive(true)}
+          onStopListening={() => setVoiceRecognitionActive(false)}
+          listening={voiceRecognitionActive}
         />
       </div>
 
