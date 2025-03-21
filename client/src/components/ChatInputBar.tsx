@@ -35,6 +35,8 @@ export function ChatInputBar({
   onStyleToggle
 }: ChatInputBarProps) {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [showImagePrompt, setShowImagePrompt] = useState(false);
+  const [imagePrompt, setImagePrompt] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,15 +62,20 @@ export function ChatInputBar({
   };
 
   const handleGenerateImage = async () => {
-    const prompt = window.prompt("What kind of image would you like me to generate?");
-    if (prompt) {
+    setShowImagePrompt(true);
+  };
+
+  const handleImagePromptSubmit = async () => {
+    if (imagePrompt.trim()) {
+      setShowImagePrompt(false);
       setIsGeneratingImage(true);
       try {
-        await onGenerateImage(prompt);
+        await onGenerateImage(imagePrompt);
       } catch (error) {
         console.error("Image generation failed:", error);
       } finally {
         setIsGeneratingImage(false);
+        setImagePrompt("");
       }
     }
   };
@@ -85,6 +92,30 @@ export function ChatInputBar({
         {isGeneratingImage && (
           <div className="mx-auto flex justify-center mb-4">
             <FancyCloudBubble text="☁️ Vexa is crafting your image..." />
+          </div>
+        )}
+
+        {showImagePrompt && (
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 w-full max-w-md">
+            <div className="relative bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 p-4 rounded-3xl shadow-xl animate-float">
+              <input
+                type="text"
+                value={imagePrompt}
+                onChange={(e) => setImagePrompt(e.target.value)}
+                placeholder="What kind of image would you like me to generate?"
+                className="w-full p-2 rounded-xl bg-white/90 border-none focus:ring-2 focus:ring-purple-500"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleImagePromptSubmit();
+                  } else if (e.key === "Escape") {
+                    setShowImagePrompt(false);
+                    setImagePrompt("");
+                  }
+                }}
+                autoFocus
+              />
+              <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 transform rotate-45 -translate-x-1/2 translate-y-2"></div>
+            </div>
           </div>
         )}
 
@@ -173,7 +204,7 @@ export function ChatInputBar({
                 onClick={handleGenerateImage}
                 className="rounded-full p-2 hover:bg-emerald-500/10 transition-all duration-200"
                 variant="ghost"
-                disabled={isGeneratingImage}
+                disabled={isGeneratingImage || showImagePrompt}
               >
                 <ImageIcon className="w-6 h-6 text-emerald-500" />
               </Button>
