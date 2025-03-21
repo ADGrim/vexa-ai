@@ -7,6 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { FancyCloudBubble } from "./FancyCloudBubble";
 
 interface ChatInputBarProps {
   value: string;
@@ -33,7 +34,7 @@ export function ChatInputBar({
   styleEnabled = false,
   onStyleToggle
 }: ChatInputBarProps) {
-  const [imagePrompt, setImagePrompt] = useState("");
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +62,14 @@ export function ChatInputBar({
   const handleGenerateImage = async () => {
     const prompt = window.prompt("What kind of image would you like me to generate?");
     if (prompt) {
-      await onGenerateImage(prompt);
+      setIsGeneratingImage(true);
+      try {
+        await onGenerateImage(prompt);
+      } catch (error) {
+        console.error("Image generation failed:", error);
+      } finally {
+        setIsGeneratingImage(false);
+      }
     }
   };
 
@@ -71,6 +79,12 @@ export function ChatInputBar({
         {isTyping && (
           <div className="text-sm text-white/60 animate-pulse pl-2">
             Vexa is thinking...
+          </div>
+        )}
+
+        {isGeneratingImage && (
+          <div className="mx-auto flex justify-center mb-4">
+            <FancyCloudBubble text="☁️ Vexa is crafting your image..." />
           </div>
         )}
 
@@ -163,6 +177,7 @@ export function ChatInputBar({
                 onClick={handleGenerateImage}
                 className="rounded-full p-2 hover:bg-emerald-500/10 transition-all duration-200"
                 variant="ghost"
+                disabled={isGeneratingImage}
               >
                 <ImageIcon className="w-6 h-6 text-emerald-500" />
               </Button>
@@ -185,7 +200,7 @@ export function ChatInputBar({
             onClick={onSubmit}
             className="rounded-full p-2 hover:bg-purple-500/10 transition-all duration-200 hover:shadow-sm disabled:opacity-50"
             variant="ghost"
-            disabled={!value.trim()}
+            disabled={!value.trim() || isGeneratingImage}
           >
             <Send className="w-6 h-6 text-purple-500" />
           </Button>
