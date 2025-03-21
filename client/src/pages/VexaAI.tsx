@@ -9,6 +9,9 @@ import { speakMyStyle } from "@/lib/SpeakMyStyle";
 import { detectVexaMention, generateVexaResponse } from "@/lib/vexaPatterns";
 import { vexaSystemPrompt } from "@/lib/vexaSystemPrompt";
 import { getDailyQuote } from '@/lib/dailyQuotes';
+import { learnFromUserMessage, adjustResponseTone, getLearningSummary } from '@/lib/vexaLearning';
+import { isUnsafeRequest, safeResponse } from "@/lib/vexaSafety";
+import { vexaVoice } from "@/lib/vexaVoice";
 
 interface Message {
   text: string;
@@ -91,6 +94,7 @@ export default function VexaAI() {
   useEffect(() => {
     return () => {
       cleanupAudio();
+      vexaVoice.cleanup();
     };
   }, []);
 
@@ -181,11 +185,16 @@ export default function VexaAI() {
     }
 
     try {
+      // Check for unsafe content first
+      if (isUnsafeRequest(userInput)) {
+        return safeResponse();
+      }
+
       const lowerInput = userInput.toLowerCase();
 
       // Check for quantum physics related questions
-      if (lowerInput.includes("quantum") || 
-          lowerInput.includes("entanglement") || 
+      if (lowerInput.includes("quantum") ||
+          lowerInput.includes("entanglement") ||
           lowerInput.includes("superposition") ||
           lowerInput.includes("wave") ||
           lowerInput.includes("particle")) {
@@ -196,7 +205,7 @@ export default function VexaAI() {
         });
 
         const response = await openai.chat.completions.create({
-          model: "gpt-4o", 
+          model: "gpt-4o",
           messages: [
             { role: "system", content: vexaSystemPrompt },
             { role: "user", content: userInput }
@@ -204,7 +213,7 @@ export default function VexaAI() {
           max_tokens: 400
         });
 
-        return response.choices[0].message.content || 
+        return response.choices[0].message.content ||
           "Great question! In quantum physics, things can exist in multiple states at once until observed — we call this superposition. It's like flipping a coin and it being both heads and tails until you look. Want me to explain more?";
       }
 
@@ -225,7 +234,7 @@ export default function VexaAI() {
       });
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o", 
+        model: "gpt-4o",
         messages: [
           { role: "system", content: vexaSystemPrompt },
           { role: "user", content: userInput }
@@ -233,7 +242,7 @@ export default function VexaAI() {
         max_tokens: 150
       });
 
-      return sanitizeAIResponse(response.choices[0].message.content || 
+      return sanitizeAIResponse(response.choices[0].message.content ||
         "I'm Vexa, and I'd love to help explain quantum concepts in a way that makes sense. What would you like to know?");
     } catch (error: any) {
       console.error("OpenAI API Error:", error);
@@ -241,12 +250,23 @@ export default function VexaAI() {
     }
   };
 
+  // Update the handleSendMessage function to include learning and voice
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
-    // Record user message for style analysis
-    if (styleAdaptationEnabled) {
-      speakMyStyle.recordMessage(input);
+    // Learn from user's message
+    learnFromUserMessage(input);
+
+    // Special command to get learning summary
+    if (input.toLowerCase() === '/vexa-learn-summary') {
+      const summary = getLearningSummary();
+      const summaryMessage = {
+        text: `Here's what I've learned about your communication style:\n${JSON.stringify(summary, null, 2)}`,
+        sender: "ai"
+      };
+      setMessages((prev) => [...prev, { text: input, sender: "user" }, summaryMessage]);
+      setInput("");
+      return;
     }
 
     const newMessage: Message = { text: input, sender: "user" };
@@ -254,13 +274,47 @@ export default function VexaAI() {
     setInput("");
 
     try {
-      const aiResponse = await fetchAIResponse(input);
+      let aiResponse = await fetchAIResponse(input);
+
+      // Apply tone adjustment based on learning
+      aiResponse = adjustResponseTone(aiResponse);
+
       const aiMessage: Message = { text: aiResponse, sender: "ai" };
       setMessages((prev) => [...prev, aiMessage]);
 
       // Only speak if voice is enabled
       if (voiceRecognitionActive) {
-        speakText(aiResponse);
+        setIsSpeaking(true);
+        try {
+          await vexaVoice.speak(aiResponse, (dataArray) => {
+            if (canvasRef.current) {
+              const ctx = canvasRef.current.getContext('2d');
+              if (ctx) {
+                // Clear canvas
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+                // Draw visualizer
+                const barWidth = (canvasRef.current.width / dataArray.length) * 2.5;
+                let x = 0;
+
+                for (let i = 0; i < dataArray.length; i++) {
+                  const barHeight = (dataArray[i] / 255) * canvasRef.current.height;
+                  const gradient = ctx.createLinearGradient(0, canvasRef.current.height, 0, canvasRef.current.height - barHeight);
+                  gradient.addColorStop(0, 'hsl(var(--primary) / 0.3)');
+                  gradient.addColorStop(1, 'hsl(var(--primary))');
+                  ctx.fillStyle = gradient;
+                  ctx.fillRect(x, canvasRef.current.height - barHeight, barWidth, barHeight);
+                  x += barWidth + 1;
+                }
+              }
+            }
+          });
+        } catch (error) {
+          console.error("Voice error:", error);
+        } finally {
+          setIsSpeaking(false);
+        }
       }
     } catch (error) {
       toast({
@@ -305,48 +359,6 @@ export default function VexaAI() {
     audio: null,
     animationFrame: null
   });
-
-  const speakText = (text: string) => {
-    if (!('speechSynthesis' in window)) {
-      console.error('Speech synthesis not supported');
-      return;
-    }
-
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    // Try to find a British English voice
-    const voices = window.speechSynthesis.getVoices();
-    const britishVoice = voices.find(voice =>
-      (voice.lang === 'en-GB' || voice.name.toLowerCase().includes('british')) &&
-      !voice.name.toLowerCase().includes('google')
-    );
-
-    // Fallback to any English female voice
-    const fallbackVoice = voices.find(
-      voice => voice.name.toLowerCase().includes('female') && voice.lang.startsWith('en')
-    );
-
-    utterance.voice = britishVoice || fallbackVoice || voices[0];
-
-    // Configure voice settings
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-
-    // Initialize voices if needed (some browsers require this)
-    if (voices.length === 0) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        const updatedVoices = window.speechSynthesis.getVoices();
-        utterance.voice = updatedVoices.find(voice => voice.lang === 'en-GB') || updatedVoices[0];
-        window.speechSynthesis.speak(utterance);
-      };
-    } else {
-      window.speechSynthesis.speak(utterance);
-    }
-  };
 
   interface AudioState {
     context: AudioContext | null;
