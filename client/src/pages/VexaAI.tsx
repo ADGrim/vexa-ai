@@ -12,6 +12,7 @@ import { getDailyQuote } from '@/lib/dailyQuotes';
 import { learnFromUserMessage, adjustResponseTone, getLearningSummary } from '@/lib/vexaLearning';
 import { isUnsafeRequest, safeResponse } from "@/lib/vexaSafety";
 import { vexaVoice } from "@/lib/vexaVoice";
+import { VoiceSelector } from "@/components/controls/VoiceSelector";
 
 interface Message {
   text: string;
@@ -50,6 +51,8 @@ export default function VexaAI() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState("nova");
+  const [voiceRate, setVoiceRate] = useState(1);
   const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false);
   const [styleAdaptationEnabled, setStyleAdaptationEnabled] = useState(false);
   const { toast } = useToast();
@@ -178,6 +181,50 @@ export default function VexaAI() {
     draw();
   };
 
+  // Add voice controls
+  const handleVoiceTest = async () => {
+    try {
+      setIsSpeaking(true);
+      await vexaVoice.speak("Hello! I'm Vexa, and I'm ready to help you understand quantum physics!", (dataArray) => {
+        updateVisualizer(dataArray);
+      });
+    } catch (error) {
+      console.error("Voice test error:", error);
+      toast({
+        variant: "destructive",
+        title: "Voice Test Failed",
+        description: "Could not test the voice. Please try again."
+      });
+    } finally {
+      setIsSpeaking(false);
+    }
+  };
+
+  const updateVisualizer = (dataArray: Uint8Array) => {
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        // Clear canvas
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+        // Draw visualizer
+        const barWidth = (canvasRef.current.width / dataArray.length) * 2.5;
+        let x = 0;
+
+        for (let i = 0; i < dataArray.length; i++) {
+          const barHeight = (dataArray[i] / 255) * canvasRef.current.height;
+          const gradient = ctx.createLinearGradient(0, canvasRef.current.height, 0, canvasRef.current.height - barHeight);
+          gradient.addColorStop(0, 'hsl(var(--primary) / 0.3)');
+          gradient.addColorStop(1, 'hsl(var(--primary))');
+          ctx.fillStyle = gradient;
+          ctx.fillRect(x, canvasRef.current.height - barHeight, barWidth, barHeight);
+          x += barWidth + 1;
+        }
+      }
+    }
+  };
+
   // Update the fetchAIResponse function to include custom interception
   const fetchAIResponse = async (userInput: string) => {
     if (!import.meta.env.VITE_OPENAI_API_KEY) {
@@ -287,29 +334,8 @@ export default function VexaAI() {
         setIsSpeaking(true);
         try {
           await vexaVoice.speak(aiResponse, (dataArray) => {
-            if (canvasRef.current) {
-              const ctx = canvasRef.current.getContext('2d');
-              if (ctx) {
-                // Clear canvas
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-                ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
-                // Draw visualizer
-                const barWidth = (canvasRef.current.width / dataArray.length) * 2.5;
-                let x = 0;
-
-                for (let i = 0; i < dataArray.length; i++) {
-                  const barHeight = (dataArray[i] / 255) * canvasRef.current.height;
-                  const gradient = ctx.createLinearGradient(0, canvasRef.current.height, 0, canvasRef.current.height - barHeight);
-                  gradient.addColorStop(0, 'hsl(var(--primary) / 0.3)');
-                  gradient.addColorStop(1, 'hsl(var(--primary))');
-                  ctx.fillStyle = gradient;
-                  ctx.fillRect(x, canvasRef.current.height - barHeight, barWidth, barHeight);
-                  x += barWidth + 1;
-                }
-              }
-            }
-          });
+            updateVisualizer(dataArray);
+          }, selectedVoice, voiceRate);
         } catch (error) {
           console.error("Voice error:", error);
         } finally {
@@ -371,6 +397,15 @@ export default function VexaAI() {
   return (
     <MoodSyncWrapper>
       <div className="min-h-screen transition-colors duration-1000">
+        <div className="fixed top-4 right-4 z-50">
+          <VoiceSelector
+            selectedVoice={selectedVoice}
+            onVoiceChange={setSelectedVoice}
+            rate={voiceRate}
+            onRateChange={setVoiceRate}
+            onTest={handleVoiceTest}
+          />
+        </div>
         <VexaLayout
           messages={messages}
           input={input}
