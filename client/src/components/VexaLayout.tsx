@@ -4,6 +4,7 @@ import { ChatInputBar } from './ChatInputBar';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { VoiceActivationState } from './VoiceActivationState';
 import AnimatedBlackHole from './AnimatedBlackHole';
+import TypewriterResponse from './TypewriterResponse';
 
 interface Message {
   text: string;
@@ -52,12 +53,8 @@ export default function VexaLayout({
               <div
                 key={index}
                 className={`${
-                  msg.sender === "user"
-                    ? "bg-purple-600/50 text-white ml-auto"
-                    : "bg-blue-500/20 backdrop-blur-sm text-white"
-                } p-4 rounded-xl shadow-xl ${
-                  msg.isHtml ? "w-full" : "max-w-[80%]"
-                } transition-all duration-200 hover:shadow-2xl`}
+                  msg.sender === "user" ? "ml-auto" : ""
+                }`}
               >
                 {msg.isHtml ? (
                   <div 
@@ -65,7 +62,20 @@ export default function VexaLayout({
                     className="w-full overflow-hidden rounded-lg"
                   />
                 ) : (
-                  msg.text
+                  <div className={msg.sender === "user" ? "text-right" : "text-left"}>
+                    {msg.sender === "ai" ? (
+                      <div className="bubble-pop">
+                        <TypewriterResponse 
+                          text={msg.text} 
+                          colorScheme="bg-gradient-to-r from-purple-500 to-blue-500 text-white" 
+                        />
+                      </div>
+                    ) : (
+                      <div className="inline-block px-4 py-2 rounded-xl bg-purple-600/50 text-white shadow-xl">
+                        {msg.text}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
