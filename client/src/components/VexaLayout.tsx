@@ -40,15 +40,16 @@ export default function VexaLayout({
   canvasRef
 }: VexaLayoutProps) {
   return (
-    <div className="flex flex-col min-h-screen max-h-screen w-full bg-gradient-to-b from-gray-900 to-black">
+    <div className="flex flex-col h-screen max-h-screen w-full bg-gradient-to-b from-gray-900 to-black">
       <VoiceActivationState 
         isActive={voiceRecognitionActive} 
         onClose={() => setVoiceRecognitionActive(false)}
       />
 
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      {/* Main scrollable content area */}
+      <div className="flex-1 overflow-y-auto no-scrollbar pt-8">
         <div className="max-w-5xl mx-auto px-4 md:px-6 pb-32">
-          <div className="space-y-4 py-4">
+          <div className="space-y-6">
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -89,7 +90,8 @@ export default function VexaLayout({
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-black">
+      {/* Fixed bottom section with canvas and input */}
+      <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-lg">
         <div className="max-w-5xl mx-auto">
           <canvas
             ref={canvasRef}
