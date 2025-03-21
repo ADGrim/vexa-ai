@@ -3,6 +3,7 @@ import { TypingIndicator } from './TypingIndicator';
 import { ChatInputBar } from './ChatInputBar';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { VoiceActivationState } from './VoiceActivationState';
+import AnimatedBlackHole from './AnimatedBlackHole';
 
 interface Message {
   text: string;
@@ -68,7 +69,12 @@ export default function VexaLayout({
                 )}
               </div>
             ))}
-            {isSpeaking && <TypingIndicator />}
+            {isSpeaking && (
+              <div className="flex items-center gap-3 justify-center">
+                <AnimatedBlackHole />
+                <p className="text-gray-400 italic">Vexa is responding from the depths of space...</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

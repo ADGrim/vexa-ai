@@ -33,23 +33,23 @@
   animation: float 2s ease-in-out infinite;
 }
 
-@keyframes pulse-glow {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 25px 10px rgba(168, 85, 247, 0.4);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
-  }
+@keyframes pulseGlow {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 1.8s infinite;
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+@keyframes slowSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: slowSpin 5s linear infinite;
 }
 
 @keyframes waveGlow {
