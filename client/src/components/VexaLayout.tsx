@@ -3,7 +3,7 @@ import { ChatInputBar } from './ChatInputBar';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { VoiceActivationState } from './VoiceActivationState';
 import VexaMessageBoard from './VexaMessageBoard';
-import ConversationSidebar from './ConversationSidebar';
+import CollapsibleSidebar from './CollapsibleSidebar';
 
 interface Message {
   text: string;
@@ -63,8 +63,8 @@ export default function VexaLayout({
 
   return (
     <div className="flex h-screen bg-black">
-      {/* Sidebar */}
-      <ConversationSidebar
+      {/* Collapsible Sidebar */}
+      <CollapsibleSidebar
         conversations={conversations}
         onSelectConversation={handleSelectConversation}
       />
