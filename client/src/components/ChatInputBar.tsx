@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { MicroscopeIcon, ImageIcon, PlusIcon, Send } from "lucide-react";
+import { ImageIcon, PlusIcon, Send, MicroscopeIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SidebarWaveIcon } from "./SidebarWaveIcon";
 import {
@@ -23,9 +23,9 @@ interface ChatInputBarProps {
   onStyleToggle?: (enabled: boolean) => void;
 }
 
-export function ChatInputBar({ 
-  value, 
-  onChange, 
+export function ChatInputBar({
+  value,
+  onChange,
   onSubmit,
   onGenerateImage,
   isTyping = false,
@@ -39,6 +39,13 @@ export function ChatInputBar({
   const [showImagePrompt, setShowImagePrompt] = useState(false);
   const [imagePrompt, setImagePrompt] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      console.log("Uploaded files:", files);
+    }
+  };
 
   useEffect(() => {
     if (inputRef.current) {
@@ -112,25 +119,80 @@ export function ChatInputBar({
           </div>
         )}
 
+        {value.trim() === "" && suggestions?.length > 0 && (
+          <div className="flex gap-2 mb-3 flex-wrap">
+            {suggestions.map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => onChange(suggestion)}
+                className="text-sm bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition-all duration-200 text-white/80"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        )}
+
         {onStyleToggle && (
           <>
             <div className="flex items-center gap-4">
-              {onStyleToggle && (
-                <div className="flex items-center gap-2">
-                  <Switch 
-                    checked={styleEnabled} 
-                    onCheckedChange={onStyleToggle}
-                    className="data-[state=checked]:bg-purple-500"
-                  />
-                  <span className="text-sm text-white/80">Speak My Style</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={styleEnabled}
+                  onCheckedChange={onStyleToggle}
+                  className="data-[state=checked]:bg-purple-500"
+                />
+                <span className="text-sm text-white/80">Speak My Style</span>
+              </div>
             </div>
             <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </>
         )}
 
         <div className="flex items-center gap-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <label className="rounded-full p-2 hover:bg-white/5 cursor-pointer transition-all duration-200">
+                <PlusIcon className="w-6 h-6 text-white/80" />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf,.docx,.txt"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+              </label>
+            </TooltipTrigger>
+            <TooltipContent>Upload files</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => console.log("Trigger deep dive")}
+                className="rounded-full p-2 hover:bg-purple-500/10 transition-all duration-200"
+                variant="ghost"
+              >
+                <MicroscopeIcon className="w-6 h-6 text-purple-500" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Deep dive analysis</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={handleGenerateImage}
+                className="rounded-full p-2 hover:bg-emerald-500/10 transition-all duration-200"
+                variant="ghost"
+                disabled={isGeneratingImage || showImagePrompt}
+              >
+                <ImageIcon className="w-6 h-6 text-emerald-500" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Generate image</TooltipContent>
+          </Tooltip>
+
           <div className="flex-1 relative">
             <textarea
               ref={inputRef}
