@@ -22,19 +22,19 @@ const CollapsibleSidebar: React.FC<CollapsibleSidebarProps> = ({ conversations, 
           onClick={() => setIsOpen(true)}
           className="absolute top-4 left-4 bg-indigo-600 p-2 rounded-full hover:bg-indigo-700 transition"
         >
-          <MenuIcon className="w-6 h-6 text-white" />
+          <MenuIcon className="w-5 h-5 text-white" />
         </button>
       )}
 
       {isOpen && (
-        <div className="w-64 bg-[#1f1f2e] text-white h-full shadow-xl flex flex-col transition-all">
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
-            <h2 className="text-xl font-bold">Conversations</h2>
+        <div className="w-48 bg-[#1f1f2e] text-white h-full shadow-xl flex flex-col transition-all">
+          <div className="flex items-center justify-between p-3 border-b border-gray-700">
+            <h2 className="text-sm font-semibold">Conversations</h2>
             <button
               onClick={() => setIsOpen(false)}
               className="bg-gray-700 p-1 rounded-full hover:bg-gray-600 transition"
             >
-              <ChevronLeftIcon className="w-5 h-5 text-white" />
+              <ChevronLeftIcon className="w-4 h-4 text-white" />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -45,7 +45,7 @@ const CollapsibleSidebar: React.FC<CollapsibleSidebarProps> = ({ conversations, 
                   onSelectConversation(conv.id);
                   setIsOpen(false);
                 }}
-                className="w-full text-left px-4 py-3 hover:bg-[#2e2e44] border-b border-gray-700 truncate"
+                className="w-full text-left px-3 py-2 hover:bg-[#2e2e44] border-b border-gray-700 truncate text-sm"
               >
                 {conv.title}
               </button>
