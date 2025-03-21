@@ -104,7 +104,7 @@ export function ChatInputBar({
                 value={imagePrompt}
                 onChange={(e) => setImagePrompt(e.target.value)}
                 placeholder="What kind of image would you like me to generate?"
-                className="w-full p-2 rounded-xl bg-white/90 border-none focus:ring-2 focus:ring-purple-500"
+                className="w-full p-2 rounded-xl bg-white/90 border-none focus:ring-2 focus:ring-purple-500 text-black placeholder-gray-500"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleImagePromptSubmit();
