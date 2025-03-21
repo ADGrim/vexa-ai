@@ -8,6 +8,7 @@ import { MoodSyncWrapper } from "@/components/MoodSyncWrapper";
 import { speakMyStyle } from "@/lib/SpeakMyStyle";
 import { detectVexaMention, generateVexaResponse } from "@/lib/vexaPatterns";
 import { vexaSystemPrompt } from "@/lib/vexaSystemPrompt";
+import { getDailyQuote } from '@/lib/dailyQuotes';
 
 interface Message {
   text: string;
@@ -180,20 +181,51 @@ export default function VexaAI() {
     }
 
     try {
-      // Check for creator questions first
+      const lowerInput = userInput.toLowerCase();
+
+      // Check for quantum physics related questions
+      if (lowerInput.includes("quantum") || 
+          lowerInput.includes("entanglement") || 
+          lowerInput.includes("superposition") ||
+          lowerInput.includes("wave") ||
+          lowerInput.includes("particle")) {
+
+        const openai = new OpenAI({
+          apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+          dangerouslyAllowBrowser: true
+        });
+
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o", 
+          messages: [
+            { role: "system", content: vexaSystemPrompt },
+            { role: "user", content: userInput }
+          ],
+          max_tokens: 400
+        });
+
+        return response.choices[0].message.content || 
+          "Great question! In quantum physics, things can exist in multiple states at once until observed — we call this superposition. It's like flipping a coin and it being both heads and tails until you look. Want me to explain more?";
+      }
+
+      // Check for creator questions
       if (detectCreatorQuestion(userInput)) {
         return "I was created by Adom.";
       }
 
-      // Check for direct Vexa questions or identity queries
-      if (detectVexaMention(userInput) || userInput.toLowerCase().includes("who are you")) {
-        return "I'm Vexa, created by Adom — your smart AI companion.";
+      // Check for identity questions
+      if (detectVexaMention(userInput) || lowerInput.includes("who are you")) {
+        return "I'm Vexa, created by Adom, and I specialize in explaining complex topics like quantum physics in simple ways. Ask me anything!";
       }
 
-      // If no direct intercept, proceed with OpenAI API call
-      console.log("Fetching AI response...");
+      // Regular response through OpenAI with quantum focus
+      const openai = new OpenAI({
+        apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true
+      });
+
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o", 
         messages: [
           { role: "system", content: vexaSystemPrompt },
           { role: "user", content: userInput }
@@ -201,19 +233,8 @@ export default function VexaAI() {
         max_tokens: 150
       });
 
-      if (!response.choices?.[0]?.message?.content) {
-        throw new Error("Invalid response from OpenAI");
-      }
-
-      // Sanitize and style the response
-      let aiResponse = sanitizeAIResponse(response.choices[0].message.content);
-
-      // Apply style adaptation if enabled
-      if (styleAdaptationEnabled) {
-        aiResponse = speakMyStyle.styleResponse(aiResponse);
-      }
-
-      return aiResponse;
+      return sanitizeAIResponse(response.choices[0].message.content || 
+        "I'm Vexa, and I'd love to help explain quantum concepts in a way that makes sense. What would you like to know?");
     } catch (error: any) {
       console.error("OpenAI API Error:", error);
       throw error;
