@@ -39,19 +39,19 @@ export default function VexaLayout({
   canvasRef
 }: VexaLayoutProps) {
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen bg-black">
       <VoiceActivationState 
         isActive={voiceRecognitionActive} 
         onClose={() => setVoiceRecognitionActive(false)}
       />
 
-      {/* Messages area with full height */}
-      <div className="flex-1 min-h-0 relative">
+      {/* Messages area with maximized height */}
+      <div className="flex-1 min-h-0">
         <VexaMessageBoard messages={messages} isTyping={isSpeaking} />
       </div>
 
-      {/* Input area at bottom */}
-      <div className="w-full mt-auto">
+      {/* Fixed input area */}
+      <div className="bg-black/85 border-t border-white/5">
         <div className="max-w-5xl mx-auto">
           <canvas
             ref={canvasRef}

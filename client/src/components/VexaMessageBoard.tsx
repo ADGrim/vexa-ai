@@ -15,7 +15,7 @@ interface VexaMessageBoardProps {
 
 const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping }) => {
   return (
-    <div className="flex flex-col h-full overflow-y-auto px-6 py-4 bg-gradient-to-b from-[#0f0c29] via-[#302b63] to-[#24243e]">
+    <div className="flex flex-col h-full overflow-y-auto px-6 py-4">
       {messages.map((msg, idx) => (
         <div key={idx} className="flex flex-col">
           {msg.isTypingBubble ? (
