@@ -34,16 +34,6 @@ export function VoiceActivationState({ isActive, onClose }: VoiceActivationState
             onClick={(e) => e.stopPropagation()}
           >
             <SidebarWaveIcon className="w-16 h-16 text-white wave-responding" />
-
-            {/* Status text */}
-            <motion.p
-              className="mt-8 text-xl font-medium text-white"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              Listening...
-            </motion.p>
           </motion.div>
         </motion.div>
       )}
