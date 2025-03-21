@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { MicroscopeIcon, ImageIcon, PlusIcon, Send, Volume2, Wand2 } from "lucide-react";
+import { MicroscopeIcon, ImageIcon, PlusIcon, Send } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SidebarWaveIcon } from "./SidebarWaveIcon";
 import {
@@ -39,13 +39,6 @@ export function ChatInputBar({
   const [showImagePrompt, setShowImagePrompt] = useState(false);
   const [imagePrompt, setImagePrompt] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      console.log("Uploaded files:", files);
-    }
-  };
 
   useEffect(() => {
     if (inputRef.current) {
@@ -119,38 +112,9 @@ export function ChatInputBar({
           </div>
         )}
 
-        {value.trim() === "" && suggestions?.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
-            {suggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => onChange(suggestion)}
-                className="text-sm bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition-all duration-200 hover:shadow-sm text-white"
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {(onVoiceToggle || onStyleToggle) && (
+        {onStyleToggle && (
           <>
             <div className="flex items-center gap-4">
-              {onVoiceToggle && (
-                  <Button
-                    onClick={() => onVoiceToggle(!voiceEnabled)}
-                    variant="ghost"
-                    size="sm"
-                    className={`transition-all duration-200 ${
-                      voiceEnabled 
-                        ? 'text-purple-400 hover:text-purple-300' 
-                        : 'text-white/60 hover:text-white/80'
-                    }`}
-                  >
-                    <Volume2 className="w-4 h-4" />
-                  </Button>
-                )}
-
               {onStyleToggle && (
                 <div className="flex items-center gap-2">
                   <Switch 
@@ -158,7 +122,6 @@ export function ChatInputBar({
                     onCheckedChange={onStyleToggle}
                     className="data-[state=checked]:bg-purple-500"
                   />
-                  <Wand2 className="w-5 h-5 text-white/80" />
                   <span className="text-sm text-white/80">Speak My Style</span>
                 </div>
               )}
@@ -168,56 +131,15 @@ export function ChatInputBar({
         )}
 
         <div className="flex items-center gap-3">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <label className="rounded-full p-2 hover:bg-white/5 cursor-pointer transition-all duration-200">
-                <PlusIcon className="w-6 h-6 text-white/80" />
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,.pdf,.docx,.txt"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-              </label>
-            </TooltipTrigger>
-            <TooltipContent>Upload files</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={() => console.log("Trigger deep dive")}
-                className="rounded-full p-2 hover:bg-purple-500/10 transition-all duration-200"
-                variant="ghost"
-              >
-                <MicroscopeIcon className="w-6 h-6 text-purple-500" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Deep dive analysis</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={handleGenerateImage}
-                className="rounded-full p-2 hover:bg-emerald-500/10 transition-all duration-200"
-                variant="ghost"
-                disabled={isGeneratingImage || showImagePrompt}
-              >
-                <ImageIcon className="w-6 h-6 text-emerald-500" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate image</TooltipContent>
-          </Tooltip>
           <div className="flex-1 relative">
             <textarea
               ref={inputRef}
               className="w-full min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-base bg-white/5 border-none focus:ring-2 focus:ring-purple-500/30 resize-none overflow-hidden text-white placeholder-white/40"
-              placeholder="Type a message..."
+              placeholder={voiceEnabled ? "Voice mode active - Click the wave to speak" : "Type a message..."}
               value={value}
               onChange={(e) => onChange(e.target.value)}
               onKeyDown={handleKeyPress}
+              disabled={voiceEnabled}
             />
           </div>
 
@@ -235,14 +157,16 @@ export function ChatInputBar({
               <Button
                 onClick={() => onVoiceToggle?.(!voiceEnabled)}
                 className={`rounded-full p-2 transition-all duration-200 ${
-                  voiceEnabled ? 'bg-purple-500/20 text-purple-400' : 'hover:bg-white/5'
+                  voiceEnabled ? 'bg-purple-500/20 text-purple-400 animate-pulse-glow' : 'hover:bg-white/5'
                 }`}
                 variant="ghost"
               >
                 <SidebarWaveIcon />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{voiceEnabled ? 'Stop voice' : 'Start voice'}</TooltipContent>
+            <TooltipContent>
+              {voiceEnabled ? 'Click to stop voice mode' : 'Click to start voice mode'}
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>

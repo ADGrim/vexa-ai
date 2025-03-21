@@ -12,7 +12,7 @@ import { getDailyQuote } from '@/lib/dailyQuotes';
 import { learnFromUserMessage, adjustResponseTone, getLearningSummary } from '@/lib/vexaLearning';
 import { isUnsafeRequest, safeResponse } from "@/lib/vexaSafety";
 import { vexaVoice } from "@/lib/vexaVoice";
-import { VoiceSelector } from "@/components/controls/VoiceSelector";
+
 
 interface Message {
   text: string;
@@ -51,8 +51,6 @@ export default function VexaAI() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState("nova");
-  const [voiceRate, setVoiceRate] = useState(1);
   const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false);
   const [styleAdaptationEnabled, setStyleAdaptationEnabled] = useState(false);
   const { toast } = useToast();
@@ -335,7 +333,7 @@ export default function VexaAI() {
         try {
           await vexaVoice.speak(aiResponse, (dataArray) => {
             updateVisualizer(dataArray);
-          }, selectedVoice, voiceRate);
+          });
         } catch (error) {
           console.error("Voice error:", error);
         } finally {
@@ -397,15 +395,6 @@ export default function VexaAI() {
   return (
     <MoodSyncWrapper>
       <div className="min-h-screen transition-colors duration-1000">
-        <div className="fixed top-4 right-4 z-50">
-          <VoiceSelector
-            selectedVoice={selectedVoice}
-            onVoiceChange={setSelectedVoice}
-            rate={voiceRate}
-            onRateChange={setVoiceRate}
-            onTest={handleVoiceTest}
-          />
-        </div>
         <VexaLayout
           messages={messages}
           input={input}
