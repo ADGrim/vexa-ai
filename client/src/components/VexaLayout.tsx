@@ -46,7 +46,7 @@ export default function VexaLayout({
         onClose={() => setVoiceRecognitionActive(false)}
       />
 
-      {/* Main scrollable content area - Remove any bottom padding/margin */}
+      {/* Main scrollable content area */}
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="space-y-6">
@@ -90,8 +90,8 @@ export default function VexaLayout({
         </div>
       </div>
 
-      {/* Fixed bottom section with canvas and input */}
-      <div className="sticky bottom-0 left-0 right-0">
+      {/* Bottom section with canvas and input */}
+      <div className="w-full">
         <div className="max-w-5xl mx-auto">
           <canvas
             ref={canvasRef}
