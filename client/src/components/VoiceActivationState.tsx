@@ -3,9 +3,10 @@ import { SidebarWaveIcon } from "./SidebarWaveIcon";
 
 interface VoiceActivationStateProps {
   isActive: boolean;
+  onClose: () => void;
 }
 
-export function VoiceActivationState({ isActive }: VoiceActivationStateProps) {
+export function VoiceActivationState({ isActive, onClose }: VoiceActivationStateProps) {
   return (
     <AnimatePresence>
       {isActive && (
@@ -14,6 +15,7 @@ export function VoiceActivationState({ isActive }: VoiceActivationStateProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center"
+          onClick={onClose}
         >
           {/* Blurred background overlay */}
           <motion.div
@@ -29,41 +31,9 @@ export function VoiceActivationState({ isActive }: VoiceActivationStateProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Outer pulse ring */}
-            <motion.div
-              className="absolute rounded-full bg-purple-500/20"
-              initial={{ width: 140, height: 140 }}
-              animate={{
-                width: 180,
-                height: 180,
-                opacity: [0.2, 0.5, 0.2],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-
-            {/* Inner pulse ring */}
-            <motion.div
-              className="absolute rounded-full bg-purple-500/30"
-              initial={{ width: 120, height: 120 }}
-              animate={{
-                width: 140,
-                height: 140,
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.2,
-              }}
-            />
-
-            {/* Center circle with wave icon */}
+            {/* Wave animation container */}
             <motion.div
               className="relative w-28 h-28 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg"
               animate={{
@@ -75,7 +45,7 @@ export function VoiceActivationState({ isActive }: VoiceActivationStateProps) {
                 ease: "easeInOut",
               }}
             >
-              <SidebarWaveIcon className="w-12 h-12 text-white" />
+              <SidebarWaveIcon className="w-12 h-12 text-white wave-responding" />
             </motion.div>
 
             {/* Status text */}
