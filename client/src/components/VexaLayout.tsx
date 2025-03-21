@@ -46,10 +46,10 @@ export default function VexaLayout({
         onClose={() => setVoiceRecognitionActive(false)}
       />
 
-      {/* Main scrollable content area */}
-      <div className="flex-1 overflow-y-auto no-scrollbar">
-        <div className="max-w-5xl mx-auto px-4 md:px-6">
-          <div className="space-y-6 py-4">
+      {/* Messages area - Takes all available space */}
+      <div className="flex-1 overflow-y-auto no-scrollbar min-h-0">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 h-full">
+          <div className="space-y-4">
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -90,7 +90,7 @@ export default function VexaLayout({
         </div>
       </div>
 
-      {/* Bottom section */}
+      {/* Input area - Fixed at bottom */}
       <div className="w-full border-t border-white/5">
         <div className="max-w-5xl mx-auto">
           <canvas
