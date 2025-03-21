@@ -47,7 +47,7 @@ export default function VexaLayout({
       />
 
       {/* Main scrollable content area */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-[120px]">
+      <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="space-y-6 py-4">
             {messages.map((msg, index) => (
@@ -90,8 +90,8 @@ export default function VexaLayout({
         </div>
       </div>
 
-      {/* Bottom fixed section with canvas and input */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black/85 border-t border-white/5">
+      {/* Bottom section */}
+      <div className="w-full border-t border-white/5">
         <div className="max-w-5xl mx-auto">
           <canvas
             ref={canvasRef}
