@@ -39,7 +39,7 @@ export default function VexaLayout({
   return (
     <div className="flex flex-col min-h-screen max-h-screen w-full bg-gradient-to-b from-gray-900 to-black">
       <div className="flex-1 overflow-y-auto no-scrollbar">
-        <div className="max-w-5xl mx-auto px-4 md:px-6 pb-20">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 pb-32">
           <div className="space-y-4 py-4">
             {messages.map((msg, index) => (
               <div
@@ -67,13 +67,13 @@ export default function VexaLayout({
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/95 to-transparent pt-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-black">
         <div className="max-w-5xl mx-auto">
           <canvas
             ref={canvasRef}
             width={600}
             height={60}
-            className="w-full h-[60px] rounded-lg bg-black/10 backdrop-blur-sm mb-2"
+            className="w-full h-[60px] rounded-lg mb-2"
           />
         </div>
 
