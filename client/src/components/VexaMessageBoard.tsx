@@ -18,15 +18,13 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
     <div className="flex flex-col h-full overflow-y-auto px-6 py-4">
       {messages.map((msg, idx) => (
         <div key={idx} className="flex flex-col">
-          {msg.isTypingBubble ? (
-            <TypewriterBubble text={msg.text} isUser={msg.sender === 'user'} />
+          {msg.sender === 'ai' ? (
+            <TypewriterBubble text={msg.text} isUser={false} />
           ) : (
             <div
               className={`
                 max-w-[75%] px-4 py-3 rounded-2xl shadow-md mb-3 bubble-pop
-                ${msg.sender === 'user' 
-                  ? 'bg-blue-500 text-white rounded-br-none self-end' 
-                  : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-bl-none self-start'}
+                bg-blue-500 text-white rounded-br-none self-end
               `}
             >
               {msg.isHtml ? (
