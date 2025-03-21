@@ -37,35 +37,38 @@ export default function VexaLayout({
   canvasRef
 }: VexaLayoutProps) {
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-gray-900 to-black">
-
-      <div className="flex-1 overflow-y-auto scroll-smooth p-6 space-y-4">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`${
-              msg.sender === "user"
-                ? "bg-purple-600/50 text-white ml-auto"
-                : "bg-blue-500/20 backdrop-blur-sm text-white"
-            } p-3 rounded-xl shadow-xl max-w-[80%] transition-all duration-200 hover:shadow-2xl`}
-          >
-            {msg.isHtml ? (
-              <div dangerouslySetInnerHTML={{ __html: msg.text }} />
-            ) : (
-              msg.text
-            )}
-          </div>
-        ))}
-        {isSpeaking && <TypingIndicator />}
+    <div className="flex flex-col h-screen w-full bg-gradient-to-b from-gray-900 to-black overflow-hidden">
+      <div className="flex-1 overflow-y-auto scroll-smooth px-4 md:px-6 py-4">
+        <div className="max-w-5xl mx-auto space-y-4">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`${
+                msg.sender === "user"
+                  ? "bg-purple-600/50 text-white ml-auto"
+                  : "bg-blue-500/20 backdrop-blur-sm text-white"
+              } p-4 rounded-xl shadow-xl ${msg.isHtml ? "max-w-full w-full" : "max-w-[80%]"} transition-all duration-200 hover:shadow-2xl`}
+            >
+              {msg.isHtml ? (
+                <div dangerouslySetInnerHTML={{ __html: msg.text }} className="w-full" />
+              ) : (
+                msg.text
+              )}
+            </div>
+          ))}
+          {isSpeaking && <TypingIndicator />}
+        </div>
       </div>
 
-      <div className="px-6 py-2">
-        <canvas
-          ref={canvasRef}
-          width={600}
-          height={100}
-          className="w-full h-[100px] rounded-lg bg-black/10 backdrop-blur-sm"
-        />
+      <div className="w-full px-4 md:px-6 py-2 bg-black/20 backdrop-blur-sm">
+        <div className="max-w-5xl mx-auto">
+          <canvas
+            ref={canvasRef}
+            width={600}
+            height={100}
+            className="w-full h-[100px] rounded-lg bg-black/10 backdrop-blur-sm"
+          />
+        </div>
       </div>
 
       <TooltipProvider>
