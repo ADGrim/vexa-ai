@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { VoiceActivationState } from './VoiceActivationState';
 import AnimatedBlackHole from './AnimatedBlackHole';
 import TypewriterResponse from './TypewriterResponse';
-import VexaVoiceListener from './VexaVoiceListener';
 
 interface Message {
   text: string;
@@ -122,7 +121,6 @@ export default function VexaLayout({
           />
         </TooltipProvider>
       </div>
-      <VexaVoiceListener /> {/* Added VexaVoiceListener here */}
     </div>
   );
 }
