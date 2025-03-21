@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic } from "lucide-react";
+import { SidebarWaveIcon } from "./SidebarWaveIcon";
 
 interface VoiceActivationStateProps {
   isActive: boolean;
@@ -10,28 +10,33 @@ export function VoiceActivationState({ isActive }: VoiceActivationStateProps) {
     <AnimatePresence>
       {isActive && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          className="fixed inset-0 flex items-center justify-center pointer-events-none z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center"
         >
-          {/* Background overlay */}
+          {/* Blurred background overlay */}
           <motion.div
-            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           />
 
           {/* Central content */}
-          <motion.div className="relative flex flex-col items-center">
+          <motion.div 
+            className="relative flex flex-col items-center"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+          >
             {/* Outer pulse ring */}
             <motion.div
               className="absolute rounded-full bg-purple-500/20"
-              initial={{ width: 120, height: 120 }}
+              initial={{ width: 140, height: 140 }}
               animate={{
-                width: 160,
-                height: 160,
+                width: 180,
+                height: 180,
                 opacity: [0.2, 0.5, 0.2],
               }}
               transition={{
@@ -44,10 +49,10 @@ export function VoiceActivationState({ isActive }: VoiceActivationStateProps) {
             {/* Inner pulse ring */}
             <motion.div
               className="absolute rounded-full bg-purple-500/30"
-              initial={{ width: 100, height: 100 }}
+              initial={{ width: 120, height: 120 }}
               animate={{
-                width: 120,
-                height: 120,
+                width: 140,
+                height: 140,
                 opacity: [0.3, 0.6, 0.3],
               }}
               transition={{
@@ -58,9 +63,9 @@ export function VoiceActivationState({ isActive }: VoiceActivationStateProps) {
               }}
             />
 
-            {/* Center circle with mic icon */}
+            {/* Center circle with wave icon */}
             <motion.div
-              className="relative w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg"
+              className="relative w-28 h-28 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg"
               animate={{
                 scale: [1, 1.05, 1],
               }}
@@ -70,33 +75,12 @@ export function VoiceActivationState({ isActive }: VoiceActivationStateProps) {
                 ease: "easeInOut",
               }}
             >
-              <Mic className="w-10 h-10 text-white" />
+              <SidebarWaveIcon className="w-12 h-12 text-white" />
             </motion.div>
-
-            {/* Floating particles */}
-            {[...Array(6)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 rounded-full bg-purple-500"
-                initial={{ scale: 0, opacity: 0.8 }}
-                animate={{
-                  y: [-20, -60],
-                  x: Math.sin(i) * 30,
-                  scale: [1, 0],
-                  opacity: [0.8, 0],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: i * 0.2,
-                  ease: "easeOut",
-                }}
-              />
-            ))}
 
             {/* Status text */}
             <motion.p
-              className="mt-8 text-lg font-medium text-white"
+              className="mt-8 text-xl font-medium text-white"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}

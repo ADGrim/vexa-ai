@@ -2,6 +2,7 @@ import React from 'react';
 import { TypingIndicator } from './TypingIndicator';
 import { ChatInputBar } from './ChatInputBar';
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { VoiceActivationState } from './VoiceActivationState';
 
 interface Message {
   text: string;
@@ -38,6 +39,8 @@ export default function VexaLayout({
 }: VexaLayoutProps) {
   return (
     <div className="flex flex-col min-h-screen max-h-screen w-full bg-gradient-to-b from-gray-900 to-black">
+      <VoiceActivationState isActive={voiceRecognitionActive} />
+
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="max-w-5xl mx-auto px-4 md:px-6 pb-32">
           <div className="space-y-4 py-4">
