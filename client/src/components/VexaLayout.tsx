@@ -90,8 +90,8 @@ export default function VexaLayout({
         </div>
       </div>
 
-      {/* Input area - Fixed at bottom */}
-      <div className="w-full border-t border-white/5">
+      {/* Canvas and input area */}
+      <div className="w-full">
         <div className="max-w-5xl mx-auto">
           <canvas
             ref={canvasRef}
