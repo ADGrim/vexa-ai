@@ -34,8 +34,8 @@ export function VoiceActivationState({ isActive, onClose }: VoiceActivationState
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <AnimatedBlackHole />
             <VexaAnimatedWaveButton speaking={isActive} onClick={(e) => e.stopPropagation()} />
+            <AnimatedBlackHole />
             <p className="text-white/80 text-lg font-medium">
               Vexa is ready to chat
             </p>
