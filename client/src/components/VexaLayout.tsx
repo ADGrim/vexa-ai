@@ -37,30 +37,37 @@ export default function VexaLayout({
   canvasRef
 }: VexaLayoutProps) {
   return (
-    <div className="flex flex-col h-screen w-full bg-gradient-to-b from-gray-900 to-black">
-      <div className="flex-1 overflow-y-auto mb-0">
-        <div className="max-w-5xl mx-auto px-4 md:px-6 py-4 space-y-4">
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`${
-                msg.sender === "user"
-                  ? "bg-purple-600/50 text-white ml-auto"
-                  : "bg-blue-500/20 backdrop-blur-sm text-white"
-              } p-4 rounded-xl shadow-xl ${msg.isHtml ? "w-full" : "max-w-[80%]"} transition-all duration-200 hover:shadow-2xl`}
-            >
-              {msg.isHtml ? (
-                <div dangerouslySetInnerHTML={{ __html: msg.text }} className="w-full" />
-              ) : (
-                msg.text
-              )}
-            </div>
-          ))}
-          {isSpeaking && <TypingIndicator />}
+    <div className="flex flex-col min-h-screen max-h-screen w-full bg-gradient-to-b from-gray-900 to-black">
+      <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 pb-20">
+          <div className="space-y-4 py-4">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`${
+                  msg.sender === "user"
+                    ? "bg-purple-600/50 text-white ml-auto"
+                    : "bg-blue-500/20 backdrop-blur-sm text-white"
+                } p-4 rounded-xl shadow-xl ${
+                  msg.isHtml ? "w-full" : "max-w-[80%]"
+                } transition-all duration-200 hover:shadow-2xl`}
+              >
+                {msg.isHtml ? (
+                  <div 
+                    dangerouslySetInnerHTML={{ __html: msg.text }} 
+                    className="w-full overflow-hidden rounded-lg"
+                  />
+                ) : (
+                  msg.text
+                )}
+              </div>
+            ))}
+            {isSpeaking && <TypingIndicator />}
+          </div>
         </div>
       </div>
 
-      <div className="sticky bottom-0 w-full bg-gradient-to-t from-black via-black/95 to-transparent pt-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/95 to-transparent pt-4">
         <div className="max-w-5xl mx-auto">
           <canvas
             ref={canvasRef}
