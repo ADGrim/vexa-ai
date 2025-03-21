@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { MicroscopeIcon, ImageIcon, PlusIcon, Send, Volume2, Wand2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { SidebarWaveIcon } from "./SidebarWaveIcon";
 import {
   Tooltip,
   TooltipContent,
@@ -42,7 +43,6 @@ export function ChatInputBar({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Handle file upload here
       console.log("Uploaded files:", files);
     }
   };
@@ -222,6 +222,21 @@ export function ChatInputBar({
               onKeyDown={handleKeyPress}
             />
           </div>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => onVoiceToggle?.(!voiceEnabled)}
+                className={`rounded-full p-2 transition-all duration-200 ${
+                  voiceEnabled ? 'bg-purple-500/20 text-purple-400' : 'hover:bg-white/5'
+                }`}
+                variant="ghost"
+              >
+                <SidebarWaveIcon />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{voiceEnabled ? 'Stop voice' : 'Start voice'}</TooltipContent>
+          </Tooltip>
 
           <Button
             onClick={onSubmit}
