@@ -18,20 +18,27 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
     <div className="flex flex-col h-full overflow-y-auto px-6 py-4">
       {messages.map((msg, idx) => (
         <div key={idx} className="flex flex-col">
-          {msg.sender === 'ai' ? (
-            <TypewriterBubble text={msg.text} isUser={false} />
-          ) : (
+          {msg.isHtml ? (
+            // Handle HTML content (like generated images) without typewriter effect
             <div
               className={`
-                max-w-[75%] px-4 py-3 rounded-2xl shadow-md mb-3 bubble-pop
-                bg-blue-500 text-white rounded-br-none self-end
+                max-w-[75%] rounded-2xl shadow-md mb-3 bubble-pop
+                ${msg.sender === 'user' 
+                  ? 'bg-blue-500 text-white rounded-br-none self-end' 
+                  : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-bl-none self-start'}
               `}
             >
-              {msg.isHtml ? (
-                <div dangerouslySetInnerHTML={{ __html: msg.text }} />
-              ) : (
-                <span>{msg.text}</span>
-              )}
+              <div className="px-4 py-3" dangerouslySetInnerHTML={{ __html: msg.text }} />
+            </div>
+          ) : msg.sender === 'ai' ? (
+            // Use TypewriterBubble for AI text responses
+            <TypewriterBubble text={msg.text} isUser={false} />
+          ) : (
+            // Regular bubble for user messages
+            <div
+              className="max-w-[75%] px-4 py-3 rounded-2xl shadow-md mb-3 bubble-pop bg-blue-500 text-white rounded-br-none self-end"
+            >
+              <span>{msg.text}</span>
             </div>
           )}
         </div>
