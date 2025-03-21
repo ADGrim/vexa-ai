@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { VoiceActivationState } from './VoiceActivationState';
 import AnimatedBlackHole from './AnimatedBlackHole';
 import TypewriterResponse from './TypewriterResponse';
+import VexaVoiceListener from './VexaVoiceListener';
 
 interface Message {
   text: string;
@@ -90,7 +91,7 @@ export default function VexaLayout({
         </div>
       </div>
 
-      {/* Fixed bottom section with canvas and input - Ensure clean connection to messages */}
+      {/* Fixed bottom section with canvas and input */}
       <div className="sticky bottom-0 left-0 right-0">
         <div className="max-w-5xl mx-auto">
           <canvas
@@ -121,6 +122,7 @@ export default function VexaLayout({
           />
         </TooltipProvider>
       </div>
+      <VexaVoiceListener /> {/* Added VexaVoiceListener here */}
     </div>
   );
 }
