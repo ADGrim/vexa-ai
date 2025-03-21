@@ -2,7 +2,6 @@ import React from 'react';
 import { TypingIndicator } from './TypingIndicator';
 import { ChatInputBar } from './ChatInputBar';
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { VoiceChatButton } from './VoiceChatButton';
 
 interface Message {
   text: string;
@@ -69,14 +68,6 @@ export default function VexaLayout({
         />
       </div>
 
-      <div className="fixed bottom-32 right-6">
-        <VoiceChatButton
-          onStartListening={() => setVoiceRecognitionActive(true)}
-          onStopListening={() => setVoiceRecognitionActive(false)}
-          listening={voiceRecognitionActive}
-        />
-      </div>
-
       <TooltipProvider>
         <ChatInputBar
           value={input}
@@ -89,10 +80,10 @@ export default function VexaLayout({
           styleEnabled={styleAdaptationEnabled}
           onStyleToggle={setStyleAdaptationEnabled}
           suggestions={[
-            "Tell me a story",
-            "What's the weather like?",
-            "How can you help me?",
-            "Let's chat"
+            "Tell me about quantum physics",
+            "How does quantum entanglement work?",
+            "Explain superposition",
+            "What is wave-particle duality?"
           ]}
         />
       </TooltipProvider>
