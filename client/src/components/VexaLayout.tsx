@@ -8,6 +8,7 @@ interface Message {
   text: string;
   sender: "user" | "ai";
   isHtml?: boolean;
+  isTypingBubble?: boolean;
 }
 
 interface VexaLayoutProps {
@@ -38,19 +39,19 @@ export default function VexaLayout({
   canvasRef
 }: VexaLayoutProps) {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen overflow-hidden">
       <VoiceActivationState 
         isActive={voiceRecognitionActive} 
         onClose={() => setVoiceRecognitionActive(false)}
       />
 
-      {/* Messages area with new gradient background */}
-      <div className="flex-1 min-h-0">
+      {/* Messages area with full height */}
+      <div className="flex-1 min-h-0 relative">
         <VexaMessageBoard messages={messages} isTyping={isSpeaking} />
       </div>
 
-      {/* Canvas and input area */}
-      <div className="w-full">
+      {/* Input area at bottom */}
+      <div className="w-full mt-auto">
         <div className="max-w-5xl mx-auto">
           <canvas
             ref={canvasRef}

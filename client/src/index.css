@@ -43,42 +43,14 @@
   animation: pulseGlow 2s infinite ease-in-out;
 }
 
-@keyframes slowSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.animate-spin-slow {
-  animation: slowSpin 5s linear infinite;
-}
-
-@keyframes waveGlow {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(0, 183, 255, 0.4);
-  }
-  50% {
-    transform: scale(1.08);
-    box-shadow: 0 0 45px rgba(0, 183, 255, 0.8);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(0, 183, 255, 0.4);
-  }
-}
-
-.animate-wave-glow {
-  animation: waveGlow 1.8s infinite ease-in-out;
-}
-
 @keyframes bubblePop {
   0% { transform: scale(0.8); opacity: 0; }
-  50% { transform: scale(1.05); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 1; }
   100% { transform: scale(1); }
 }
 
 .bubble-pop {
-  animation: bubblePop 0.25s ease-in-out;
+  animation: bubblePop 0.3s ease-in-out;
 }
 
 .dot {
