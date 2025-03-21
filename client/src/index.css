@@ -72,13 +72,29 @@
 }
 
 @keyframes bubblePop {
-  0% { transform: scale(0.6); opacity: 0; }
+  0% { transform: scale(0.8); opacity: 0; }
   50% { transform: scale(1.05); opacity: 1; }
   100% { transform: scale(1); }
 }
 
 .bubble-pop {
-  animation: bubblePop 0.25s ease;
+  animation: bubblePop 0.25s ease-in-out;
+}
+
+.dot {
+  font-size: 1.8rem;
+  color: white;
+  display: inline-block;
+  transform: translateY(0);
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+}
+
+.animate-bounce {
+  animation: bounce 1.2s infinite;
 }
 
 .blinking-cursor {

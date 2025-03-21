@@ -1,10 +1,8 @@
 import React from 'react';
-import { TypingIndicator } from './TypingIndicator';
 import { ChatInputBar } from './ChatInputBar';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { VoiceActivationState } from './VoiceActivationState';
-import AnimatedBlackHole from './AnimatedBlackHole';
-import TypewriterResponse from './TypewriterResponse';
+import VexaMessageBoard from './VexaMessageBoard';
 
 interface Message {
   text: string;
@@ -40,54 +38,15 @@ export default function VexaLayout({
   canvasRef
 }: VexaLayoutProps) {
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-gray-900 to-black">
+    <div className="flex flex-col h-screen">
       <VoiceActivationState 
         isActive={voiceRecognitionActive} 
         onClose={() => setVoiceRecognitionActive(false)}
       />
 
-      {/* Messages area - Takes all available space */}
-      <div className="flex-1 overflow-y-auto no-scrollbar min-h-0">
-        <div className="max-w-5xl mx-auto px-4 md:px-6 h-full">
-          <div className="space-y-4">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`${
-                  msg.sender === "user" ? "ml-auto" : ""
-                }`}
-              >
-                {msg.isHtml ? (
-                  <div 
-                    dangerouslySetInnerHTML={{ __html: msg.text }} 
-                    className="w-full overflow-hidden rounded-lg"
-                  />
-                ) : (
-                  <div className={msg.sender === "user" ? "text-right" : "text-left"}>
-                    {msg.sender === "ai" ? (
-                      <div className="bubble-pop">
-                        <TypewriterResponse 
-                          text={msg.text} 
-                          colorScheme="bg-gradient-to-r from-purple-500 to-blue-500 text-white" 
-                        />
-                      </div>
-                    ) : (
-                      <div className="inline-block px-4 py-2 rounded-xl bg-purple-600/50 text-white shadow-xl">
-                        {msg.text}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-            {isSpeaking && (
-              <div className="flex items-center gap-3 justify-center">
-                <AnimatedBlackHole />
-                <p className="text-gray-400 italic">Vexa is responding from the depths of space...</p>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Messages area with new gradient background */}
+      <div className="flex-1 min-h-0">
+        <VexaMessageBoard messages={messages} isTyping={isSpeaking} />
       </div>
 
       {/* Canvas and input area */}
