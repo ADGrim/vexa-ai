@@ -106,23 +106,19 @@ export function ChatInputBar({
           <>
             <div className="flex items-center gap-4">
               {onVoiceToggle && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => onVoiceToggle(!voiceEnabled)}
-                      variant="ghost"
-                      size="icon"
-                      className={`rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200 ${
-                        voiceEnabled 
-                          ? 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30' 
-                          : 'text-white/60 hover:bg-white/10'
-                      }`}
-                    >
-                      <span className="text-sm font-medium">Vexa</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Toggle Vexa voice</TooltipContent>
-                </Tooltip>
+                <Button
+                  onClick={() => onVoiceToggle(!voiceEnabled)}
+                  variant="ghost"
+                  size="sm"
+                  className={`transition-all duration-200 ${
+                    voiceEnabled 
+                      ? 'text-purple-400 hover:text-purple-300' 
+                      : 'text-white/60 hover:text-white/80'
+                  }`}
+                >
+                  <Volume2 className="w-4 h-4 mr-2" />
+                  <span className="text-sm">Vexa</span>
+                </Button>
               )}
 
               {onStyleToggle && (
