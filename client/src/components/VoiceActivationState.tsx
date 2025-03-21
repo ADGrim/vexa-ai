@@ -33,20 +33,7 @@ export function VoiceActivationState({ isActive, onClose }: VoiceActivationState
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Wave animation container */}
-            <motion.div
-              className="relative w-28 h-28 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg"
-              animate={{
-                scale: [1, 1.05, 1],
-              }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <SidebarWaveIcon className="w-12 h-12 text-white wave-responding" />
-            </motion.div>
+            <SidebarWaveIcon className="w-16 h-16 text-white wave-responding" />
 
             {/* Status text */}
             <motion.p
