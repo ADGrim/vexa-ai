@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { VexaAnimatedWave } from "./VexaAnimatedWave";
+import VexaAnimatedWaveButton from "./VexaAnimatedWaveButton";
 
 interface VoiceActivationStateProps {
   isActive: boolean;
@@ -33,7 +33,7 @@ export function VoiceActivationState({ isActive, onClose }: VoiceActivationState
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <VexaAnimatedWave speaking={isActive} />
+            <VexaAnimatedWaveButton speaking={isActive} onClick={(e) => e.stopPropagation()} />
           </motion.div>
         </motion.div>
       )}
