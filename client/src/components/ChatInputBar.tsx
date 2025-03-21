@@ -137,20 +137,19 @@ export function ChatInputBar({
           <>
             <div className="flex items-center gap-4">
               {onVoiceToggle && (
-                <Button
-                  onClick={() => onVoiceToggle(!voiceEnabled)}
-                  variant="ghost"
-                  size="sm"
-                  className={`transition-all duration-200 ${
-                    voiceEnabled 
-                      ? 'text-purple-400 hover:text-purple-300' 
-                      : 'text-white/60 hover:text-white/80'
-                  }`}
-                >
-                  <Volume2 className="w-4 h-4 mr-2" />
-                  <span className="text-sm">Vexa</span>
-                </Button>
-              )}
+                  <Button
+                    onClick={() => onVoiceToggle(!voiceEnabled)}
+                    variant="ghost"
+                    size="sm"
+                    className={`transition-all duration-200 ${
+                      voiceEnabled 
+                        ? 'text-purple-400 hover:text-purple-300' 
+                        : 'text-white/60 hover:text-white/80'
+                    }`}
+                  >
+                    <Volume2 className="w-4 h-4" />
+                  </Button>
+                )}
 
               {onStyleToggle && (
                 <div className="flex items-center gap-2">
@@ -211,7 +210,6 @@ export function ChatInputBar({
             </TooltipTrigger>
             <TooltipContent>Generate image</TooltipContent>
           </Tooltip>
-
           <div className="flex-1 relative">
             <textarea
               ref={inputRef}
@@ -222,6 +220,15 @@ export function ChatInputBar({
               onKeyDown={handleKeyPress}
             />
           </div>
+
+          <Button
+            onClick={onSubmit}
+            className="rounded-full p-2 hover:bg-purple-500/10 transition-all duration-200 hover:shadow-sm disabled:opacity-50"
+            variant="ghost"
+            disabled={!value.trim() || isGeneratingImage}
+          >
+            <Send className="w-6 h-6 text-purple-500" />
+          </Button>
 
           <Tooltip>
             <TooltipTrigger asChild>
@@ -237,15 +244,6 @@ export function ChatInputBar({
             </TooltipTrigger>
             <TooltipContent>{voiceEnabled ? 'Stop voice' : 'Start voice'}</TooltipContent>
           </Tooltip>
-
-          <Button
-            onClick={onSubmit}
-            className="rounded-full p-2 hover:bg-purple-500/10 transition-all duration-200 hover:shadow-sm disabled:opacity-50"
-            variant="ghost"
-            disabled={!value.trim() || isGeneratingImage}
-          >
-            <Send className="w-6 h-6 text-purple-500" />
-          </Button>
         </div>
       </div>
     </div>
