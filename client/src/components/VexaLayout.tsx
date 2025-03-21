@@ -1,9 +1,8 @@
 import React from 'react';
 import { TypingIndicator } from './TypingIndicator';
 import { ChatInputBar } from './ChatInputBar';
-import { VoiceActivationState } from './VoiceActivationState';
-import { VoiceChatButton } from './VoiceChatButton';
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { VoiceChatButton } from './VoiceChatButton';
 
 interface Message {
   text: string;
@@ -40,7 +39,6 @@ export default function VexaLayout({
 }: VexaLayoutProps) {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-gray-900 to-black">
-      <VoiceActivationState isActive={voiceRecognitionActive} />
 
       <div className="flex-1 overflow-y-auto scroll-smooth p-6 space-y-4">
         {messages.map((msg, index) => (
