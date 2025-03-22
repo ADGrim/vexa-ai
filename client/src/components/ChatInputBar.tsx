@@ -9,7 +9,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { FancyCloudBubble } from "./FancyCloudBubble";
-//import VexaVoiceListener from './VexaVoiceListener';
 
 interface ChatInputBarProps {
   value: string;
@@ -84,18 +83,21 @@ export function ChatInputBar({
   return (
     <div className="w-full sticky bottom-0 backdrop-blur-xl bg-black/85 border-t border-white/5 shadow-lg transition-all duration-300 hover:bg-black/90">
       <div className="p-4 space-y-3">
+        {/* Typing indicator */}
         {isTyping && (
           <div className="text-sm text-white/60 animate-pulse pl-2">
             Vexa is thinking...
           </div>
         )}
 
+        {/* Image generation indicator */}
         {isGeneratingImage && (
           <div className="mx-auto flex justify-center mb-4">
             <FancyCloudBubble text="☁️ Vexa is crafting your image..." />
           </div>
         )}
 
+        {/* Image prompt popup */}
         {showImagePrompt && (
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 w-full max-w-md">
             <div className="relative bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 p-4 rounded-3xl shadow-xl animate-float">
@@ -120,6 +122,7 @@ export function ChatInputBar({
           </div>
         )}
 
+        {/* Message suggestions */}
         {value.trim() === "" && suggestions?.length > 0 && (
           <div className="flex gap-2 mb-3 flex-wrap">
             {suggestions.map((suggestion, index) => (
@@ -134,6 +137,7 @@ export function ChatInputBar({
           </div>
         )}
 
+        {/* Style adaptation toggle */}
         {onStyleToggle && (
           <>
             <div className="flex items-center gap-4">
@@ -150,7 +154,9 @@ export function ChatInputBar({
           </>
         )}
 
+        {/* Input area */}
         <div className="flex items-center gap-3">
+          {/* File upload button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <label className="rounded-full p-2 hover:bg-white/5 cursor-pointer transition-all duration-200">
@@ -167,6 +173,7 @@ export function ChatInputBar({
             <TooltipContent>Upload files</TooltipContent>
           </Tooltip>
 
+          {/* Deep dive button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -180,6 +187,7 @@ export function ChatInputBar({
             <TooltipContent>Deep dive analysis</TooltipContent>
           </Tooltip>
 
+          {/* Image generation button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -194,6 +202,7 @@ export function ChatInputBar({
             <TooltipContent>Generate image</TooltipContent>
           </Tooltip>
 
+          {/* Text input */}
           <div className="flex-1 relative">
             <textarea
               ref={inputRef}
@@ -206,6 +215,7 @@ export function ChatInputBar({
             />
           </div>
 
+          {/* Send button */}
           <Button
             onClick={onSubmit}
             className="rounded-full p-2 hover:bg-purple-500/10 transition-all duration-200 hover:shadow-sm disabled:opacity-50"
@@ -215,6 +225,7 @@ export function ChatInputBar({
             <Send className="w-6 h-6 text-purple-500" />
           </Button>
 
+          {/* Voice toggle */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
