@@ -12,6 +12,12 @@
   }
 }
 
+@layer components {
+  .prose-chat a {
+    @apply text-yellow-300 hover:text-yellow-200 underline transition-colors;
+  }
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;

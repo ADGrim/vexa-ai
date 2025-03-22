@@ -18,16 +18,14 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
   const renderMessage = (msg: Message) => {
     if (msg.isHtml) {
       return (
-        <div
-          className={`
-            max-w-[75%] rounded-2xl shadow-md mb-3 bubble-pop
-            ${msg.sender === 'user' 
-              ? 'bg-blue-500 text-white rounded-br-none self-end' 
-              : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-bl-none self-start'}
-          `}
-        >
+        <div className={`
+          max-w-[75%] rounded-2xl shadow-md mb-3 bubble-pop
+          ${msg.sender === 'user' 
+            ? 'bg-blue-500 text-white rounded-br-none self-end' 
+            : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-bl-none self-start'}
+        `}>
           <div 
-            className="px-4 py-3 prose prose-invert max-w-none"
+            className="px-4 py-3 prose prose-invert max-w-none prose-a:text-yellow-300 prose-a:no-underline hover:prose-a:underline prose-a:transition-colors"
             dangerouslySetInnerHTML={{ 
               __html: msg.text 
             }} 
@@ -50,7 +48,7 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
   return (
     <div className="flex flex-col h-full overflow-y-auto px-6 py-4">
       {messages.map((msg, idx) => (
-        <div key={idx} className="flex flex-col">
+        <div key={idx} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
           {renderMessage(msg)}
         </div>
       ))}
