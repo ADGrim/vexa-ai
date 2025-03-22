@@ -152,10 +152,16 @@ export default function VexaLayout({
 
       const imageHtml = await generateImage(prompt);
 
+      // Update with slow reveal animation class
+      const enhancedImageHtml = imageHtml.replace(
+        'class="w-full h-auto rounded-lg"',
+        'class="w-full h-auto rounded-xl shadow-lg border-2 border-indigo-500/20 slow-reveal"'
+      );
+
       setMessages(prev => [
         ...prev.slice(0, -1),
         {
-          text: imageHtml,
+          text: enhancedImageHtml,
           sender: "ai",
           isHtml: true
         }
