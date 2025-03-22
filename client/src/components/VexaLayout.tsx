@@ -24,10 +24,6 @@ interface Conversation {
 }
 
 interface VexaLayoutProps {
-  messages: Message[];
-  input: string;
-  onInputChange: (value: string) => void;
-  onSendMessage: () => void;
   onGenerateImage: (prompt: string) => Promise<void>;
   isSpeaking: boolean;
   voiceRecognitionActive: boolean;
@@ -44,10 +40,6 @@ const exampleConversations = [
 ];
 
 export default function VexaLayout({
-  messages,
-  input,
-  onInputChange,
-  onSendMessage,
   onGenerateImage,
   isSpeaking,
   voiceRecognitionActive,
@@ -62,6 +54,8 @@ export default function VexaLayout({
   const [showSettings, setShowSettings] = useState(false);
   const [vexaConfig] = useState<VexaConfig>(loadVexaConfig());
   const [conversationMemory, setConversationMemory] = useState<ConversationMemory>(loadMemory());
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
   const [settings, setSettings] = useState({
     voiceEnabled: voiceRecognitionActive && vexaConfig.enableNovaVoice,
     styleAdaptation: styleAdaptationEnabled,
@@ -119,7 +113,7 @@ export default function VexaLayout({
         sender: 'user'
       };
       setMessages(prev => [...prev, userMessage]);
-      onInputChange('');
+      setInput(''); // Clear input after sending
 
       const updatedMemory = await streamVexaResponse(input, handleMessageStream, conversationMemory);
       setConversationMemory(updatedMemory);
@@ -173,7 +167,7 @@ export default function VexaLayout({
             <TooltipProvider>
               <ChatInputBar
                 value={input}
-                onChange={onInputChange}
+                onChange={setInput}
                 onSubmit={handleSendMessage}
                 onGenerateImage={onGenerateImage}
                 isTyping={isSpeaking}
