@@ -16,7 +16,7 @@ export const referenceLinks: Record<string, ReferenceLink[]> = {
   quantum: [
     { 
       title: "Quantum Mechanics Overview", 
-      url: "https://en.wikipedia.org/wiki/Quantum_mechanics" 
+      url: "https://en.wikipedia.org/wiki/quantum_mechanics" 
     },
     { 
       title: "Quantum Entanglement Explained", 
@@ -44,13 +44,6 @@ export const referenceLinks: Record<string, ReferenceLink[]> = {
       title: "Latest Tech Trends", 
       url: "https://www.technologyreview.com/" 
     }
-  ],
-  ai: [
-    {
-      title: "Understanding AI (PDF)",
-      url: "https://yourapp.com/resources/ai_guide.pdf",
-      isPdf: true
-    }
   ]
 };
 
@@ -64,12 +57,12 @@ export const generateGoogleSearchLink = (query: string): string => {
 };
 
 export const enhanceVexaReply = (text: string): string => {
-  // Replace URLs with clickable links
+  // Replace URLs with clickable links using vexa-link class
   let enhancedText = text.replace(
     /(https?:\/\/[^\s]+)/g, 
     (url) => {
       const isPdf = url.toLowerCase().endsWith('.pdf');
-      return `<a href="${url}" ${isPdf ? 'download' : ''} target="_blank" class="text-purple-400 hover:text-purple-300 underline transition-colors">${url}</a>`;
+      return `<a href="${url}" ${isPdf ? 'download' : ''} target="_blank" class="vexa-link">${url}</a>`;
     }
   );
 
@@ -80,7 +73,7 @@ export const enhanceVexaReply = (text: string): string => {
       if (topicLinks.length > 0) {
         enhancedText += '\n\nRelevant resources:\n';
         topicLinks.forEach(link => {
-          enhancedText += `• <a href="${link.url}" ${link.isPdf ? 'download' : ''} target="_blank" class="text-purple-400 hover:text-purple-300 underline transition-colors">${link.title}${link.isPdf ? ' (PDF)' : ''}</a>\n`;
+          enhancedText += `• <a href="${link.url}" ${link.isPdf ? 'download' : ''} target="_blank" class="vexa-link">${link.title}${link.isPdf ? ' (PDF)' : ''}</a>\n`;
         });
       }
     }

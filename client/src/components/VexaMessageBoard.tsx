@@ -4,6 +4,7 @@ import { detectUserMood, moodStyles } from '@/lib/moodDetection';
 
 interface Message {
   text: string;
+  content?: string;
   sender: "user" | "ai";
   isHtml?: boolean;
   isTypingBubble?: boolean;
@@ -16,28 +17,30 @@ interface VexaMessageBoardProps {
 
 const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping }) => {
   const renderMessage = (msg: Message) => {
+    const messageContent = msg.content || msg.text; // Support both content and text properties
+
     if (msg.isHtml) {
       return (
         <div className={`
-          max-w-[75%] px-4 py-3 rounded-xl shadow-md mb-3 bubble-pop
+          inline-block px-4 py-3 rounded-xl shadow-md mb-3 bubble-pop
           ${msg.sender === 'user' 
             ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-none self-end' 
             : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-bl-none self-start'}
         `}>
           <div 
-            className="bubble-content prose prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: msg.text }}
+            className="bubble-content"
+            dangerouslySetInnerHTML={{ __html: messageContent }}
           />
         </div>
       );
     } else if (msg.sender === 'ai') {
-      return <TypewriterBubble text={msg.text} isUser={false} />;
+      return <TypewriterBubble text={messageContent} isUser={false} />;
     } else {
       return (
         <TypewriterBubble 
-          text={msg.text} 
+          text={messageContent} 
           isUser={true} 
-          colorScheme={moodStyles[detectUserMood(msg.text)]}
+          colorScheme={moodStyles[detectUserMood(messageContent)]}
         />
       );
     }

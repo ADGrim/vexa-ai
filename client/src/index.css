@@ -13,15 +13,16 @@
 }
 
 @layer components {
-  .bubble-content a {
+  .bubble-content a.vexa-link {
     @apply text-yellow-300 font-semibold underline transition-colors;
   }
 
-  .bubble-content a:hover {
+  .bubble-content a.vexa-link:hover {
     @apply text-yellow-200;
   }
-  .prose-chat a {
-    @apply text-yellow-300 hover:text-yellow-200 underline transition-colors;
+
+  .bubble-content {
+    @apply prose prose-invert max-w-none;
   }
 }
 
@@ -54,16 +55,6 @@
 
 .slow-reveal {
   animation: slowReveal 1.5s ease forwards;
-}
-
-@keyframes pulseGlow {
-  0% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.9; }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 2s infinite ease-in-out;
 }
 
 @keyframes bubblePop {
