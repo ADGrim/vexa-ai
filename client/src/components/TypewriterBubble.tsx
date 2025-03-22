@@ -17,13 +17,11 @@ const TypewriterBubble: React.FC<TypewriterBubbleProps> = ({
   useEffect(() => {
     if (currentIndex < text.length) {
       const timeout = setTimeout(() => {
-        // Type multiple characters at once for ultra-fast speed
-        const chunkSize = 4;
-        const nextIndex = Math.min(currentIndex + chunkSize, text.length);
-        const nextChunk = text.slice(currentIndex, nextIndex);
-        setDisplayedText(prev => prev + nextChunk);
+        // Type characters one at a time for smoother animation
+        const nextIndex = currentIndex + 1;
+        setDisplayedText(text.slice(0, nextIndex));
         setCurrentIndex(nextIndex);
-      }, 5); // ultra-low delay between steps
+      }, 15); // slightly slower delay for better readability
 
       return () => clearTimeout(timeout);
     }
@@ -39,7 +37,9 @@ const TypewriterBubble: React.FC<TypewriterBubbleProps> = ({
       `}
     >
       <span>{displayedText}</span>
-      {currentIndex < text.length && <span className="blinking-cursor">|</span>}
+      {currentIndex < text.length && (
+        <span className="blinking-cursor ml-[2px] inline-block w-[2px] h-[1em] bg-current align-middle animate-blink">|</span>
+      )}
     </div>
   );
 };
