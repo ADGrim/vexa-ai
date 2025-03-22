@@ -7,6 +7,8 @@ import CollapsibleSidebar from './CollapsibleSidebar';
 import OnboardingModal from './OnboardingModal';
 import SettingsModal from './SettingsModal';
 import { loadVexaConfig, type VexaConfig } from '@/lib/vexaConfig';
+import { ConversationMemory, loadMemory } from '@/lib/conversationMemory';
+import { streamVexaResponse } from '@/lib/streamResponse';
 
 interface Message {
   text: string;
@@ -59,6 +61,7 @@ export default function VexaLayout({
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [vexaConfig] = useState<VexaConfig>(loadVexaConfig());
+  const [conversationMemory, setConversationMemory] = useState<ConversationMemory>(loadMemory());
   const [settings, setSettings] = useState({
     voiceEnabled: voiceRecognitionActive && vexaConfig.enableNovaVoice,
     styleAdaptation: styleAdaptationEnabled,
@@ -94,6 +97,39 @@ export default function VexaLayout({
     const found = conversations.find((c) => c.id === conversationId);
     if (found) {
       setCurrentConversation(found);
+    }
+  };
+
+  const handleMessageStream = (chunk: string) => {
+    // Update UI with streaming chunks
+    const newMessage: Message = {
+      text: chunk,
+      sender: 'ai',
+      isTypingBubble: true
+    };
+    setMessages(prev => [...prev, newMessage]);
+  };
+
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
+
+    try {
+      const userMessage: Message = {
+        text: input.trim(),
+        sender: 'user'
+      };
+      setMessages(prev => [...prev, userMessage]);
+      onInputChange('');
+
+      const updatedMemory = await streamVexaResponse(input, handleMessageStream, conversationMemory);
+      setConversationMemory(updatedMemory);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        text: 'Sorry, I encountered an error. Please try again.',
+        sender: 'ai'
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -138,7 +174,7 @@ export default function VexaLayout({
               <ChatInputBar
                 value={input}
                 onChange={onInputChange}
-                onSubmit={onSendMessage}
+                onSubmit={handleSendMessage}
                 onGenerateImage={onGenerateImage}
                 isTyping={isSpeaking}
                 voiceEnabled={voiceRecognitionActive}
