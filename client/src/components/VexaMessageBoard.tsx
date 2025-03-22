@@ -15,33 +15,43 @@ interface VexaMessageBoardProps {
 }
 
 const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping }) => {
+  const renderMessage = (msg: Message) => {
+    if (msg.isHtml) {
+      return (
+        <div
+          className={`
+            max-w-[75%] rounded-2xl shadow-md mb-3 bubble-pop
+            ${msg.sender === 'user' 
+              ? 'bg-blue-500 text-white rounded-br-none self-end' 
+              : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-bl-none self-start'}
+          `}
+        >
+          <div 
+            className="px-4 py-3 prose prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ 
+              __html: msg.text 
+            }} 
+          />
+        </div>
+      );
+    } else if (msg.sender === 'ai') {
+      return <TypewriterBubble text={msg.text} isUser={false} />;
+    } else {
+      return (
+        <TypewriterBubble 
+          text={msg.text} 
+          isUser={true} 
+          colorScheme={moodStyles[detectUserMood(msg.text)]}
+        />
+      );
+    }
+  };
+
   return (
     <div className="flex flex-col h-full overflow-y-auto px-6 py-4">
       {messages.map((msg, idx) => (
         <div key={idx} className="flex flex-col">
-          {msg.isHtml ? (
-            // Handle HTML content (like generated images) without typewriter effect
-            <div
-              className={`
-                max-w-[75%] rounded-2xl shadow-md mb-3 bubble-pop
-                ${msg.sender === 'user' 
-                  ? 'bg-blue-500 text-white rounded-br-none self-end' 
-                  : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-bl-none self-start'}
-              `}
-            >
-              <div className="px-4 py-3" dangerouslySetInnerHTML={{ __html: msg.text }} />
-            </div>
-          ) : msg.sender === 'ai' ? (
-            // Use TypewriterBubble for AI text responses
-            <TypewriterBubble text={msg.text} isUser={false} />
-          ) : (
-            // Regular bubble for user messages with mood detection
-            <TypewriterBubble 
-              text={msg.text} 
-              isUser={true} 
-              colorScheme={moodStyles[detectUserMood(msg.text)]}
-            />
-          )}
+          {renderMessage(msg)}
         </div>
       ))}
 
