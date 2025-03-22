@@ -6,6 +6,7 @@ import VexaMessageBoard from './VexaMessageBoard';
 import CollapsibleSidebar from './CollapsibleSidebar';
 import OnboardingModal from './OnboardingModal';
 import SettingsModal from './SettingsModal';
+import { loadVexaConfig, type VexaConfig } from '@/lib/vexaConfig';
 
 interface Message {
   text: string;
@@ -57,8 +58,9 @@ export default function VexaLayout({
   const [currentConversation, setCurrentConversation] = useState<Conversation>(conversations[0]);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [vexaConfig] = useState<VexaConfig>(loadVexaConfig());
   const [settings, setSettings] = useState({
-    voiceEnabled: voiceRecognitionActive,
+    voiceEnabled: voiceRecognitionActive && vexaConfig.enableNovaVoice,
     styleAdaptation: styleAdaptationEnabled,
     darkMode: true
   });
@@ -80,7 +82,6 @@ export default function VexaLayout({
       case 'styleAdaptation':
         setStyleAdaptationEnabled(value);
         break;
-      // Add more cases as needed
     }
   };
 
