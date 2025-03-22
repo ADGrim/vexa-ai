@@ -83,12 +83,18 @@ export default {
           "50%": { transform: "scale(1.1)", opacity: "1" },
           "100%": { transform: "scale(1)", opacity: "0.9" },
         },
+        "wave-glow": {
+          "0%": { transform: "scale(1)", filter: "brightness(1)" },
+          "50%": { transform: "scale(1.05)", filter: "brightness(1.2)" },
+          "100%": { transform: "scale(1)", filter: "brightness(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "spin-slow": "slow-spin 5s linear infinite",
         "pulse-glow": "pulse-glow 2s infinite ease-in-out",
+        "wave-glow": "wave-glow 2s infinite ease-in-out",
       },
     },
   },
