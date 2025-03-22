@@ -9,6 +9,7 @@ import SettingsModal from './SettingsModal';
 import { loadVexaConfig, type VexaConfig } from '@/lib/vexaConfig';
 import { ConversationMemory, loadMemory } from '@/lib/conversationMemory';
 import { streamVexaResponse } from '@/lib/streamResponse';
+import { generateImage } from '@/lib/generateImage';
 
 interface Message {
   text: string;
@@ -98,13 +99,11 @@ export default function VexaLayout({
     setMessages(prev => {
       const lastMessage = prev[prev.length - 1];
       if (lastMessage && lastMessage.isTypingBubble) {
-        // Update the existing message text
         return [
           ...prev.slice(0, -1),
           { ...lastMessage, text: lastMessage.text + chunk }
         ];
       }
-      // Create new message if no typing bubble exists
       return [...prev, {
         text: chunk,
         sender: 'ai',
@@ -117,15 +116,13 @@ export default function VexaLayout({
     if (!input.trim()) return;
 
     try {
-      // Add user message
       const userMessage: Message = {
         text: input.trim(),
         sender: 'user'
       };
       setMessages(prev => [...prev, userMessage]);
-      setInput(''); // Clear input after sending
+      setInput('');
 
-      // Start with empty AI message
       setMessages(prev => [...prev, {
         text: '',
         sender: 'ai',
@@ -145,11 +142,42 @@ export default function VexaLayout({
     }
   };
 
+  const handleGenerateImage = async (prompt: string) => {
+    try {
+      setMessages(prev => [...prev, {
+        text: "✨ Creating your image...",
+        sender: "ai",
+        isTypingBubble: true
+      }]);
+
+      const imageHtml = await generateImage(prompt);
+
+      setMessages(prev => [
+        ...prev.slice(0, -1),
+        {
+          text: imageHtml,
+          sender: "ai",
+          isHtml: true
+        }
+      ]);
+
+    } catch (error) {
+      console.error('Error generating image:', error);
+      setMessages(prev => [
+        ...prev.slice(0, -1),
+        {
+          text: "Sorry, I couldn't generate that image. Please try again with a different description.",
+          sender: "ai"
+        }
+      ]);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-black">
-      <OnboardingModal 
-        open={showOnboarding} 
-        onOpenChange={handleOnboardingClose} 
+      <OnboardingModal
+        open={showOnboarding}
+        onOpenChange={handleOnboardingClose}
       />
 
       <SettingsModal
@@ -165,8 +193,8 @@ export default function VexaLayout({
       />
 
       <div className="flex-1 flex flex-col">
-        <VoiceActivationState 
-          isActive={voiceRecognitionActive} 
+        <VoiceActivationState
+          isActive={voiceRecognitionActive}
           onClose={() => setVoiceRecognitionActive(false)}
         />
 
@@ -187,7 +215,7 @@ export default function VexaLayout({
                 value={input}
                 onChange={setInput}
                 onSubmit={handleSendMessage}
-                onGenerateImage={onGenerateImage}
+                onGenerateImage={handleGenerateImage}
                 isTyping={isSpeaking}
                 voiceEnabled={voiceRecognitionActive}
                 onVoiceToggle={setVoiceRecognitionActive}
