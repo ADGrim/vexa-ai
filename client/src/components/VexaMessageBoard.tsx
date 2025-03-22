@@ -1,5 +1,6 @@
 import React from 'react';
 import TypewriterBubble from './TypewriterBubble';
+import { detectUserMood, moodStyles } from '@/lib/moodDetection';
 
 interface Message {
   text: string;
@@ -34,12 +35,12 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
             // Use TypewriterBubble for AI text responses
             <TypewriterBubble text={msg.text} isUser={false} />
           ) : (
-            // Regular bubble for user messages
-            <div
-              className="max-w-[75%] px-4 py-3 rounded-2xl shadow-md mb-3 bubble-pop bg-blue-500 text-white rounded-br-none self-end"
-            >
-              <span>{msg.text}</span>
-            </div>
+            // Regular bubble for user messages with mood detection
+            <TypewriterBubble 
+              text={msg.text} 
+              isUser={true} 
+              colorScheme={moodStyles[detectUserMood(msg.text)]}
+            />
           )}
         </div>
       ))}
