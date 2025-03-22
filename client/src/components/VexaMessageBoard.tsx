@@ -21,14 +21,16 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
 
     if (msg.isHtml) {
       return (
-        <div className={`
-          max-w-[80%] px-5 py-4 rounded-xl shadow-sm bubble-fade
-          ${msg.sender === 'user'
-            ? 'bg-blue-500 text-white rounded-br-none'
-            : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-bl-none'}
-        `}>
+        <div
+          className={`
+            max-w-[80%] px-5 py-4 rounded-xl shadow-sm bubble-fade
+            ${msg.sender === 'user'
+              ? 'bg-blue-500 text-white rounded-br-none'
+              : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-bl-none'}
+          `}
+        >
           <div 
-            className="bubble-content leading-relaxed"
+            className="bubble-content"
             dangerouslySetInnerHTML={{ __html: messageContent }}
           />
         </div>

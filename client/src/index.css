@@ -24,6 +24,10 @@
   .bubble-content {
     @apply prose prose-invert max-w-none leading-relaxed;
   }
+
+  .bubble-content a {
+    @apply text-yellow-300 hover:text-yellow-200 underline font-semibold transition-colors cursor-pointer;
+  }
 }
 
 @layer utilities {
@@ -64,7 +68,6 @@
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 
 @keyframes bubblePop {
   0% { transform: scale(0.8); opacity: 0; }
