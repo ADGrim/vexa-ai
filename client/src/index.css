@@ -13,6 +13,13 @@
 }
 
 @layer components {
+  .bubble-content a {
+    @apply text-yellow-300 font-semibold underline transition-colors;
+  }
+
+  .bubble-content a:hover {
+    @apply text-yellow-200;
+  }
   .prose-chat a {
     @apply text-yellow-300 hover:text-yellow-200 underline transition-colors;
   }

@@ -19,16 +19,14 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
     if (msg.isHtml) {
       return (
         <div className={`
-          max-w-[75%] rounded-2xl shadow-md mb-3 bubble-pop
+          max-w-[75%] px-4 py-3 rounded-xl shadow-md mb-3 bubble-pop
           ${msg.sender === 'user' 
-            ? 'bg-blue-500 text-white rounded-br-none self-end' 
+            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-none self-end' 
             : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-bl-none self-start'}
         `}>
           <div 
-            className="px-4 py-3 prose prose-invert max-w-none prose-a:text-yellow-300 prose-a:no-underline hover:prose-a:underline prose-a:transition-colors"
-            dangerouslySetInnerHTML={{ 
-              __html: msg.text 
-            }} 
+            className="bubble-content prose prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: msg.text }}
           />
         </div>
       );
@@ -55,7 +53,7 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
 
       {isTyping && (
         <div className="flex justify-start my-2">
-          <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-3 rounded-2xl rounded-bl-none shadow-md bubble-pop">
+          <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-3 rounded-xl rounded-bl-none shadow-md bubble-pop">
             <span className="dot animate-bounce">•</span>
             <span className="dot animate-bounce" style={{ animationDelay: '0.15s' }}>•</span>
             <span className="dot animate-bounce" style={{ animationDelay: '0.3s' }}>•</span>
