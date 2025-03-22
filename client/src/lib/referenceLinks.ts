@@ -3,11 +3,13 @@ import { z } from 'zod';
 export interface ReferenceLink {
   title: string;
   url: string;
+  isPdf?: boolean;
 }
 
 export const referenceLinkSchema = z.object({
   title: z.string(),
-  url: z.string().url()
+  url: z.string().url(),
+  isPdf: z.boolean().optional()
 });
 
 export const referenceLinks: Record<string, ReferenceLink[]> = {
@@ -19,6 +21,16 @@ export const referenceLinks: Record<string, ReferenceLink[]> = {
     { 
       title: "Quantum Entanglement Explained", 
       url: "https://www.scientificamerican.com/article/what-is-quantum-entanglement/" 
+    },
+    {
+      title: "Quantum Physics Guide (PDF)",
+      url: "https://yourapp.com/resources/quantum_physics_guide.pdf",
+      isPdf: true
+    },
+    {
+      title: "Quantum Entanglement Visual (PDF)",
+      url: "https://yourapp.com/resources/entanglement_visual.pdf",
+      isPdf: true
     }
   ],
   physics: [
@@ -31,6 +43,13 @@ export const referenceLinks: Record<string, ReferenceLink[]> = {
     { 
       title: "Latest Tech Trends", 
       url: "https://www.technologyreview.com/" 
+    }
+  ],
+  ai: [
+    {
+      title: "Understanding AI (PDF)",
+      url: "https://yourapp.com/resources/ai_guide.pdf",
+      isPdf: true
     }
   ]
 };
@@ -48,7 +67,10 @@ export const enhanceVexaReply = (text: string): string => {
   // Replace URLs with clickable links
   let enhancedText = text.replace(
     /(https?:\/\/[^\s]+)/g, 
-    (url) => `<a href="${url}" target="_blank" class="text-purple-400 hover:text-purple-300 underline transition-colors">${url}</a>`
+    (url) => {
+      const isPdf = url.toLowerCase().endsWith('.pdf');
+      return `<a href="${url}" ${isPdf ? 'download' : ''} target="_blank" class="text-purple-400 hover:text-purple-300 underline transition-colors">${url}</a>`;
+    }
   );
 
   // Add reference links if topic markers are found
@@ -58,7 +80,7 @@ export const enhanceVexaReply = (text: string): string => {
       if (topicLinks.length > 0) {
         enhancedText += '\n\nRelevant resources:\n';
         topicLinks.forEach(link => {
-          enhancedText += `• <a href="${link.url}" target="_blank" class="text-purple-400 hover:text-purple-300 underline transition-colors">${link.title}</a>\n`;
+          enhancedText += `• <a href="${link.url}" ${link.isPdf ? 'download' : ''} target="_blank" class="text-purple-400 hover:text-purple-300 underline transition-colors">${link.title}${link.isPdf ? ' (PDF)' : ''}</a>\n`;
         });
       }
     }
