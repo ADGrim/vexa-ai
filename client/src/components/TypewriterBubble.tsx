@@ -15,13 +15,19 @@ const TypewriterBubble: React.FC<TypewriterBubbleProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    // Reset animation when text changes
+    setDisplayedText('');
+    setCurrentIndex(0);
+  }, [text]);
+
+  useEffect(() => {
     if (currentIndex < text.length) {
+      const charsPerFrame = Math.max(1, Math.floor(text.length / 50)); // Dynamic speed based on length
       const timeout = setTimeout(() => {
-        // Type characters one at a time for smoother animation
-        const nextIndex = currentIndex + 1;
+        const nextIndex = Math.min(currentIndex + charsPerFrame, text.length);
         setDisplayedText(text.slice(0, nextIndex));
         setCurrentIndex(nextIndex);
-      }, 15); // slightly slower delay for better readability
+      }, 20); // Consistent timing for smooth animation
 
       return () => clearTimeout(timeout);
     }

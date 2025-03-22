@@ -95,19 +95,29 @@ export default function VexaLayout({
   };
 
   const handleMessageStream = (chunk: string) => {
-    // Update UI with streaming chunks
-    const newMessage: Message = {
-      text: chunk,
-      sender: 'ai',
-      isTypingBubble: true
-    };
-    setMessages(prev => [...prev, newMessage]);
+    setMessages(prev => {
+      const lastMessage = prev[prev.length - 1];
+      if (lastMessage && lastMessage.isTypingBubble) {
+        // Update the existing message text
+        return [
+          ...prev.slice(0, -1),
+          { ...lastMessage, text: lastMessage.text + chunk }
+        ];
+      }
+      // Create new message if no typing bubble exists
+      return [...prev, {
+        text: chunk,
+        sender: 'ai',
+        isTypingBubble: true
+      }];
+    });
   };
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
     try {
+      // Add user message
       const userMessage: Message = {
         text: input.trim(),
         sender: 'user'
@@ -115,8 +125,16 @@ export default function VexaLayout({
       setMessages(prev => [...prev, userMessage]);
       setInput(''); // Clear input after sending
 
+      // Start with empty AI message
+      setMessages(prev => [...prev, {
+        text: '',
+        sender: 'ai',
+        isTypingBubble: true
+      }]);
+
       const updatedMemory = await streamVexaResponse(input, handleMessageStream, conversationMemory);
       setConversationMemory(updatedMemory);
+
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
