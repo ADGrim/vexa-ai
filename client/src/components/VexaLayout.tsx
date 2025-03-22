@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChatInputBar } from './ChatInputBar';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { VoiceActivationState } from './VoiceActivationState';
 import VexaMessageBoard from './VexaMessageBoard';
 import CollapsibleSidebar from './CollapsibleSidebar';
+import OnboardingModal from './OnboardingModal';
+import SettingsModal from './SettingsModal';
 
 interface Message {
   text: string;
@@ -53,6 +55,39 @@ export default function VexaLayout({
 }: VexaLayoutProps) {
   const [conversations, setConversations] = useState<Conversation[]>(exampleConversations);
   const [currentConversation, setCurrentConversation] = useState<Conversation>(conversations[0]);
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState({
+    voiceEnabled: voiceRecognitionActive,
+    styleAdaptation: styleAdaptationEnabled,
+    darkMode: true
+  });
+
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('vexa_has_seen_onboarding');
+    if (hasSeenOnboarding) {
+      setShowOnboarding(false);
+    }
+  }, []);
+
+  const handleSettingChange = (setting: string, value: boolean) => {
+    setSettings(prev => ({ ...prev, [setting]: value }));
+
+    switch (setting) {
+      case 'voiceEnabled':
+        setVoiceRecognitionActive(value);
+        break;
+      case 'styleAdaptation':
+        setStyleAdaptationEnabled(value);
+        break;
+      // Add more cases as needed
+    }
+  };
+
+  const handleOnboardingClose = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('vexa_has_seen_onboarding', 'true');
+  };
 
   const handleSelectConversation = (conversationId: number) => {
     const found = conversations.find((c) => c.id === conversationId);
@@ -63,25 +98,33 @@ export default function VexaLayout({
 
   return (
     <div className="flex h-screen bg-black">
-      {/* Collapsible Sidebar */}
+      <OnboardingModal 
+        open={showOnboarding} 
+        onOpenChange={handleOnboardingClose} 
+      />
+
+      <SettingsModal
+        open={showSettings}
+        onOpenChange={setShowSettings}
+        settings={settings}
+        onSettingChange={handleSettingChange}
+      />
+
       <CollapsibleSidebar
         conversations={conversations}
         onSelectConversation={handleSelectConversation}
       />
 
-      {/* Main chat area */}
       <div className="flex-1 flex flex-col">
         <VoiceActivationState 
           isActive={voiceRecognitionActive} 
           onClose={() => setVoiceRecognitionActive(false)}
         />
 
-        {/* Messages area with maximized height */}
         <div className="flex-1 min-h-0">
           <VexaMessageBoard messages={messages} isTyping={isSpeaking} />
         </div>
 
-        {/* Input area */}
         <div className="bg-black/85">
           <div className="max-w-5xl mx-auto">
             <canvas
