@@ -26,7 +26,7 @@ export const generateVexaResponse = (userMessage: string): string => {
 
   // Check for creator questions first
   if (detectCreatorQuestion(userMessage)) {
-    return "I was created by Aaron.";
+    return `I was created by ${import.meta.env.VITE_CREATOR_NAME || 'User'}.`;
   }
 
   // Check for greetings

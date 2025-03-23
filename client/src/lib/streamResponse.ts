@@ -2,10 +2,12 @@ import OpenAI from 'openai';
 import { vexaSystemPrompt } from './vexaSystemPrompt';
 import { ConversationMemory, addToConversationMemory, saveMemory } from './conversationMemory';
 import { enhanceVexaReply } from './referenceLinks';
+import { isUnsafeRequest, safeResponse } from './vexaSafety';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const MODEL = "gpt-4o";
 
+// Ensure API key is loaded from environment variable
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true
@@ -19,8 +21,15 @@ export const streamVexaResponse = async (
   memory: ConversationMemory
 ): Promise<ConversationMemory> => {
   try {
+    // Security checks
     if (!import.meta.env.VITE_OPENAI_API_KEY) {
-      throw new Error('OpenAI API key is not configured');
+      throw new Error('OpenAI API key is not configured. Please check your environment variables.');
+    }
+
+    // Check for unsafe content
+    if (isUnsafeRequest(userPrompt)) {
+      onDataChunk(safeResponse());
+      return memory;
     }
 
     // Add user message to memory
@@ -52,16 +61,17 @@ export const streamVexaResponse = async (
 
   } catch (error) {
     console.error('Error streaming response:', error);
-    throw new Error(
-      error instanceof Error ? error.message : 'Failed to stream response'
-    );
+    if (error instanceof Error && error.message.includes('API key')) {
+      throw new Error('OpenAI API key is not properly configured. Please check your environment variables.');
+    }
+    throw new Error(error instanceof Error ? error.message : 'Failed to stream response');
   }
 };
 
 export const generateStreamError = (error: unknown): string => {
   if (error instanceof Error) {
     if (error.message.includes('API key')) {
-      return "OpenAI API key is not properly configured. Please check your settings.";
+      return "OpenAI API key is not properly configured. Please check your environment variables.";
     }
     return `An error occurred: ${error.message}`;
   }

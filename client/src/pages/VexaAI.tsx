@@ -265,12 +265,12 @@ export default function VexaAI() {
 
       // Check for creator questions
       if (detectCreatorQuestion(userInput)) {
-        return "I was created by Adom. 😊";
+        return `I was created by ${import.meta.env.VITE_CREATOR_NAME || 'User'}. 😊`;
       }
 
       // Check for identity questions
       if (detectVexaMention(userInput) || lowerInput.includes("who are you")) {
-        return conversationalAdjustments("I'm Vexa, created by Adom, and I specialize in explaining complex topics like quantum physics in simple ways. Ask me anything!");
+        return conversationalAdjustments(`I'm Vexa, created by ${import.meta.env.VITE_CREATOR_NAME || 'User'}, and I specialize in explaining complex topics like quantum physics in simple ways. Ask me anything!`);
       }
 
       // Regular response through OpenAI with quantum focus
@@ -358,7 +358,7 @@ export default function VexaAI() {
         lowerResponse.includes("language model") ||
         lowerResponse.includes("ai model") ||
         lowerResponse.includes("artificial intelligence model")) {
-      return "I'm Vexa, created by Adom — here to help!";
+      return `I'm Vexa, created by ${import.meta.env.VITE_CREATOR_NAME || 'User'} — here to help!`;
     }
     return response;
   };
