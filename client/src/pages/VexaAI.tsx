@@ -12,6 +12,7 @@ import { getDailyQuote } from '@/lib/dailyQuotes';
 import { learnFromUserMessage, adjustResponseTone, getLearningSummary } from '@/lib/vexaLearning';
 import { isUnsafeRequest, safeResponse } from "@/lib/vexaSafety";
 import { vexaVoice } from "@/lib/vexaVoice";
+import { VexaConfig, loadVexaConfig } from "@/lib/vexaConfig";
 
 interface Message {
   text: string;
@@ -46,41 +47,67 @@ const generateImage = async (prompt: string): Promise<string> => {
   }
 };
 
-export default function VexaAI() {
+function VexaAI() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceRecognitionActive, setVoiceRecognitionActive] = useState(false);
   const [styleAdaptationEnabled, setStyleAdaptationEnabled] = useState(false);
+  const [config] = useState<VexaConfig>(loadVexaConfig());
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const audioStateRef = useRef<AudioState>({
+    context: null,
+    analyser: null,
+    audio: null,
+    animationFrame: null
+  });
 
-  // Add handleGenerateImage function
-  const handleGenerateImage = async (prompt: string) => {
-    try {
-      const processingMessage: Message = {
-        text: `Generating image for: "${prompt}"`,
-        sender: "ai"
-      };
-      setMessages(prev => [...prev, processingMessage]);
-
-      const imageUrl = await generateImage(prompt);
-
-      const imageMessage: Message = {
-        text: `<img src="${imageUrl}" alt="Generated image" class="rounded-lg max-w-full h-auto shadow-lg"/>`,
-        sender: "ai",
-        isHtml: true
-      };
-
-      setMessages(prev => [...prev.slice(0, -1), imageMessage]);
-    } catch (error) {
+  // Add voice chat initialization
+  useEffect(() => {
+    // Check for browser support
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       toast({
         variant: "destructive",
-        title: "Error generating image",
-        description: error instanceof Error ? error.message : "An unexpected error occurred"
+        title: "Voice Chat Unavailable",
+        description: "Your browser doesn't support voice recognition. Please use Chrome or Edge."
       });
+      setVoiceRecognitionActive(false);
+      return;
     }
-  };
+
+    // Request microphone permission
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        stream.getTracks().forEach(track => track.stop()); // Release the stream
+        toast({
+          title: "Voice Chat Ready",
+          description: "Microphone access granted. You can now use voice chat."
+        });
+      })
+      .catch(error => {
+        console.error("Microphone permission error:", error);
+        toast({
+          variant: "destructive",
+          title: "Voice Chat Error",
+          description: "Please allow microphone access to use voice chat."
+        });
+        setVoiceRecognitionActive(false);
+      });
+  }, []);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioStateRef.current.context?.state !== 'closed') {
+        audioStateRef.current.context?.close();
+      }
+      if (audioStateRef.current.animationFrame) {
+        cancelAnimationFrame(audioStateRef.current.animationFrame);
+      }
+      vexaVoice.cleanup();
+    };
+  }, []);
 
   // Toggle style adaptation
   useEffect(() => {
@@ -178,47 +205,83 @@ export default function VexaAI() {
     draw();
   };
 
-  // Add voice controls
-  const handleVoiceTest = async () => {
+
+  // Add handleGenerateImage function
+  const handleGenerateImage = async (prompt: string) => {
+    try {
+      const processingMessage: Message = {
+        text: `Generating image for: "${prompt}"`,
+        sender: "ai"
+      };
+      setMessages(prev => [...prev, processingMessage]);
+
+      const imageUrl = await generateImage(prompt);
+
+      const imageMessage: Message = {
+        text: `<img src="${imageUrl}" alt="Generated image" class="rounded-lg max-w-full h-auto shadow-lg"/>`,
+        sender: "ai",
+        isHtml: true
+      };
+
+      setMessages(prev => [...prev.slice(0, -1), imageMessage]);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error generating image",
+        description: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    }
+  };
+
+  // Handle voice response
+  const handleVoiceResponse = async (text: string) => {
+    if (!config.enableNovaVoice) {
+      toast({
+        variant: "destructive",
+        title: "Nova Voice Disabled",
+        description: "Please enable Nova voice in settings to use voice chat."
+      });
+      return;
+    }
+
     try {
       setIsSpeaking(true);
-      await vexaVoice.speak("Hello! I'm Vexa, and I'm ready to help you understand quantum physics!", (dataArray) => {
+      await vexaVoice.speak(text, (dataArray) => {
         updateVisualizer(dataArray);
       });
     } catch (error) {
-      console.error("Voice test error:", error);
+      console.error("Voice synthesis error:", error);
       toast({
         variant: "destructive",
-        title: "Voice Test Failed",
-        description: "Could not test the voice. Please try again."
+        title: "Voice Error",
+        description: "Failed to synthesize voice response. Please try again."
       });
     } finally {
       setIsSpeaking(false);
     }
   };
 
+  // Update visualizer with audio data
   const updateVisualizer = (dataArray: Uint8Array) => {
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-        // Clear canvas
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    if (!canvasRef.current) return;
 
-        // Draw visualizer
-        const barWidth = (canvasRef.current.width / dataArray.length) * 2.5;
-        let x = 0;
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
 
-        for (let i = 0; i < dataArray.length; i++) {
-          const barHeight = (dataArray[i] / 255) * canvasRef.current.height;
-          const gradient = ctx.createLinearGradient(0, canvasRef.current.height, 0, canvasRef.current.height - barHeight);
-          gradient.addColorStop(0, 'hsl(var(--primary) / 0.3)');
-          gradient.addColorStop(1, 'hsl(var(--primary))');
-          ctx.fillStyle = gradient;
-          ctx.fillRect(x, canvasRef.current.height - barHeight, barWidth, barHeight);
-          x += barWidth + 1;
-        }
-      }
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    const barWidth = (canvasRef.current.width / dataArray.length) * 2.5;
+    let x = 0;
+
+    for (let i = 0; i < dataArray.length; i++) {
+      const barHeight = (dataArray[i] / 255) * canvasRef.current.height;
+      const gradient = ctx.createLinearGradient(0, canvasRef.current.height, 0, canvasRef.current.height - barHeight);
+      gradient.addColorStop(0, 'hsl(var(--primary) / 0.3)');
+      gradient.addColorStop(1, 'hsl(var(--primary))');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, canvasRef.current.height - barHeight, barWidth, barHeight);
+      x += barWidth + 1;
     }
   };
 
@@ -332,16 +395,7 @@ export default function VexaAI() {
 
       // Only speak if voice is enabled
       if (voiceRecognitionActive) {
-        setIsSpeaking(true);
-        try {
-          await vexaVoice.speak(aiResponse, (dataArray) => {
-            updateVisualizer(dataArray);
-          });
-        } catch (error) {
-          console.error("Voice error:", error);
-        } finally {
-          setIsSpeaking(false);
-        }
+        await handleVoiceResponse(aiResponse);
       }
     } catch (error) {
       toast({
@@ -386,20 +440,12 @@ export default function VexaAI() {
   };
 
 
-  const audioStateRef = useRef<AudioState>({
-    context: null,
-    analyser: null,
-    audio: null,
-    animationFrame: null
-  });
-
   interface AudioState {
     context: AudioContext | null;
     analyser: AnalyserNode | null;
     audio: HTMLAudioElement | null;
     animationFrame: number | null;
   }
-
 
   return (
     <MoodSyncWrapper>
@@ -421,3 +467,5 @@ export default function VexaAI() {
     </MoodSyncWrapper>
   );
 }
+
+export default VexaAI;

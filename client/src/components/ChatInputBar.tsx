@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { FancyCloudBubble } from "./FancyCloudBubble";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatInputBarProps {
   value: string;
@@ -39,11 +40,38 @@ export function ChatInputBar({
   const [showImagePrompt, setShowImagePrompt] = useState(false);
   const [imagePrompt, setImagePrompt] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast();
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      console.log("Uploaded files:", files);
+  const handleVoiceToggle = () => {
+    if (!onVoiceToggle) return;
+
+    if (!voiceEnabled) {
+      // Check browser support before enabling
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        toast({
+          variant: "destructive",
+          title: "Voice Chat Unavailable",
+          description: "Your browser doesn't support voice recognition. Please use Chrome or Edge."
+        });
+        return;
+      }
+
+      // Request microphone permission
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          stream.getTracks().forEach(track => track.stop());
+          onVoiceToggle(true);
+        })
+        .catch(error => {
+          console.error("Microphone permission error:", error);
+          toast({
+            variant: "destructive",
+            title: "Voice Chat Error",
+            description: "Please allow microphone access to use voice chat."
+          });
+        });
+    } else {
+      onVoiceToggle(false);
     }
   };
 
@@ -73,6 +101,11 @@ export function ChatInputBar({
         await onGenerateImage(imagePrompt);
       } catch (error) {
         console.error("Image generation failed:", error);
+        toast({
+          variant: "destructive",
+          title: "Image Generation Failed",
+          description: "Failed to generate image. Please try again."
+        });
       } finally {
         setIsGeneratingImage(false);
         setImagePrompt("");
@@ -87,38 +120,6 @@ export function ChatInputBar({
         {isTyping && (
           <div className="text-sm text-white/60 animate-pulse pl-2">
             Vexa is thinking...
-          </div>
-        )}
-
-        {/* Image generation indicator */}
-        {isGeneratingImage && (
-          <div className="mx-auto flex justify-center mb-4">
-            <FancyCloudBubble text="☁️ Vexa is crafting your image..." />
-          </div>
-        )}
-
-        {/* Image prompt popup */}
-        {showImagePrompt && (
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 w-full max-w-md">
-            <div className="relative bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 p-4 rounded-3xl shadow-xl animate-float">
-              <input
-                type="text"
-                value={imagePrompt}
-                onChange={(e) => setImagePrompt(e.target.value)}
-                placeholder="What kind of image would you like me to generate?"
-                className="w-full p-2 rounded-xl bg-white/90 border-none focus:ring-2 focus:ring-purple-500 text-black placeholder-gray-500"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleImagePromptSubmit();
-                  } else if (e.key === "Escape") {
-                    setShowImagePrompt(false);
-                    setImagePrompt("");
-                  }
-                }}
-                autoFocus
-              />
-              <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 transform rotate-45 -translate-x-1/2 translate-y-2"></div>
-            </div>
           </div>
         )}
 
@@ -156,36 +157,36 @@ export function ChatInputBar({
 
         {/* Input area */}
         <div className="flex items-center gap-3">
-          {/* File upload button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <label className="rounded-full p-2 hover:bg-white/5 cursor-pointer transition-all duration-200">
-                <PlusIcon className="w-6 h-6 text-white/80" />
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,.pdf,.docx,.txt"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-              </label>
-            </TooltipTrigger>
-            <TooltipContent>Upload files</TooltipContent>
-          </Tooltip>
-
-          {/* Deep dive button */}
+          {/* Voice toggle */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={() => console.log("Trigger deep dive")}
-                className="rounded-full p-2 hover:bg-purple-500/10 transition-all duration-200"
+                onClick={handleVoiceToggle}
+                className={`rounded-full p-2 transition-all duration-200 ${
+                  voiceEnabled ? 'bg-purple-500/20 text-purple-400 animate-pulse' : 'hover:bg-white/5'
+                }`}
                 variant="ghost"
               >
-                <MicroscopeIcon className="w-6 h-6 text-purple-500" />
+                <SidebarWaveIcon className={voiceEnabled ? 'animate-pulse' : ''} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Deep dive analysis</TooltipContent>
+            <TooltipContent>
+              {voiceEnabled ? 'Disable voice chat' : 'Enable voice chat'}
+            </TooltipContent>
           </Tooltip>
+
+          {/* Text input */}
+          <div className="flex-1 relative">
+            <textarea
+              ref={inputRef}
+              className="w-full min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-base bg-white/5 border-none focus:ring-2 focus:ring-purple-500/30 resize-none overflow-hidden text-white placeholder-white/40"
+              placeholder={voiceEnabled ? "Voice mode active - Click the wave to speak" : "Type a message..."}
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              onKeyDown={handleKeyPress}
+              disabled={voiceEnabled}
+            />
+          </div>
 
           {/* Image generation button */}
           <Tooltip>
@@ -202,19 +203,6 @@ export function ChatInputBar({
             <TooltipContent>Generate image</TooltipContent>
           </Tooltip>
 
-          {/* Text input */}
-          <div className="flex-1 relative">
-            <textarea
-              ref={inputRef}
-              className="w-full min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-base bg-white/5 border-none focus:ring-2 focus:ring-purple-500/30 resize-none overflow-hidden text-white placeholder-white/40"
-              placeholder={voiceEnabled ? "Voice mode active - Click the wave to speak" : "Type a message..."}
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              onKeyDown={handleKeyPress}
-              disabled={voiceEnabled}
-            />
-          </div>
-
           {/* Send button */}
           <Button
             onClick={onSubmit}
@@ -224,25 +212,32 @@ export function ChatInputBar({
           >
             <Send className="w-6 h-6 text-purple-500" />
           </Button>
-
-          {/* Voice toggle */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={() => onVoiceToggle?.(!voiceEnabled)}
-                className={`rounded-full p-2 transition-all duration-200 ${
-                  voiceEnabled ? 'bg-purple-500/20 text-purple-400 animate-pulse-glow' : 'hover:bg-white/5'
-                }`}
-                variant="ghost"
-              >
-                <SidebarWaveIcon className={voiceEnabled ? 'wave-responding' : ''} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {voiceEnabled ? 'Click to stop voice' : 'Click to start voice'}
-            </TooltipContent>
-          </Tooltip>
         </div>
+
+        {/* Image prompt popup */}
+        {showImagePrompt && (
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 w-full max-w-md">
+            <div className="relative bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 p-4 rounded-3xl shadow-xl animate-float">
+              <input
+                type="text"
+                value={imagePrompt}
+                onChange={(e) => setImagePrompt(e.target.value)}
+                placeholder="What kind of image would you like me to generate?"
+                className="w-full p-2 rounded-xl bg-white/90 border-none focus:ring-2 focus:ring-purple-500 text-black placeholder-gray-500"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleImagePromptSubmit();
+                  } else if (e.key === "Escape") {
+                    setShowImagePrompt(false);
+                    setImagePrompt("");
+                  }
+                }}
+                autoFocus
+              />
+              <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 transform rotate-45 -translate-x-1/2 translate-y-2"></div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
