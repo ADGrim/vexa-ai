@@ -180,7 +180,7 @@ export default function VexaLayout({
   };
 
   return (
-    <div className="flex h-screen bg-black">
+    <div className="flex min-h-screen w-full bg-black">
       <OnboardingModal
         open={showOnboarding}
         onOpenChange={handleOnboardingClose}
@@ -198,44 +198,46 @@ export default function VexaLayout({
         onSelectConversation={handleSelectConversation}
       />
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <main className="flex-1 flex flex-col relative w-full overflow-hidden">
         <VoiceActivationState
           isActive={voiceRecognitionActive}
           onClose={() => setVoiceRecognitionActive(false)}
         />
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 relative w-full overflow-hidden">
           <VexaMessageBoard messages={messages} isTyping={isSpeaking} />
         </div>
 
-        <div className="w-full bg-black/85 px-4">
+        <div className="w-full bg-black/85 border-t border-white/10">
           <canvas
             ref={canvasRef}
             width={600}
             height={60}
             className="w-full h-[60px]"
           />
-          <TooltipProvider>
-            <ChatInputBar
-              value={input}
-              onChange={setInput}
-              onSubmit={handleSendMessage}
-              onGenerateImage={handleGenerateImage}
-              isTyping={isSpeaking}
-              voiceEnabled={voiceRecognitionActive}
-              onVoiceToggle={setVoiceRecognitionActive}
-              styleEnabled={styleAdaptationEnabled}
-              onStyleToggle={setStyleAdaptationEnabled}
-              suggestions={[
-                "Tell me about quantum physics",
-                "How does quantum entanglement work?",
-                "Explain superposition",
-                "What is wave-particle duality?"
-              ]}
-            />
-          </TooltipProvider>
+          <div className="w-full max-w-7xl mx-auto px-4">
+            <TooltipProvider>
+              <ChatInputBar
+                value={input}
+                onChange={setInput}
+                onSubmit={handleSendMessage}
+                onGenerateImage={handleGenerateImage}
+                isTyping={isSpeaking}
+                voiceEnabled={voiceRecognitionActive}
+                onVoiceToggle={setVoiceRecognitionActive}
+                styleEnabled={styleAdaptationEnabled}
+                onStyleToggle={setStyleAdaptationEnabled}
+                suggestions={[
+                  "Tell me about quantum physics",
+                  "How does quantum entanglement work?",
+                  "Explain superposition",
+                  "What is wave-particle duality?"
+                ]}
+              />
+            </TooltipProvider>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

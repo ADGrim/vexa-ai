@@ -23,7 +23,7 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
       return (
         <div
           className={`
-            w-full max-w-[95%] px-6 py-4 rounded-xl shadow-sm bubble-fade
+            w-full max-w-[85%] p-6 rounded-xl shadow-sm bubble-fade
             ${msg.sender === 'user'
               ? 'bg-blue-500 text-white rounded-br-none ml-auto'
               : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-bl-none mr-auto'}
@@ -49,7 +49,7 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto px-4 py-4 space-y-4">
+    <div className="flex flex-col h-full w-full overflow-y-auto p-6 space-y-6">
       {messages.map((msg, idx) => (
         <div 
           key={idx} 
@@ -61,7 +61,7 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
 
       {isTyping && (
         <div className="flex justify-start w-full">
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-4 rounded-xl rounded-bl-none shadow-sm bubble-fade max-w-[95%]">
+          <div className="w-full max-w-[85%] bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-xl rounded-bl-none shadow-sm bubble-fade">
             <span className="dot animate-bounce">•</span>
             <span className="dot animate-bounce" style={{ animationDelay: '0.15s' }}>•</span>
             <span className="dot animate-bounce" style={{ animationDelay: '0.3s' }}>•</span>

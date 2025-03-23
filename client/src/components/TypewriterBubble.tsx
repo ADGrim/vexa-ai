@@ -35,16 +35,18 @@ const TypewriterBubble: React.FC<TypewriterBubbleProps> = ({
   return (
     <div
       className={`
-        w-full max-w-[95%] px-6 py-4 rounded-xl shadow-sm bubble-pop
+        w-full max-w-[85%] p-6 rounded-xl shadow-sm bubble-pop
         ${isUser 
           ? 'bg-blue-500 text-white rounded-br-none ml-auto' 
           : `${colorScheme || 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'} rounded-bl-none mr-auto`}
       `}
     >
-      <span>{displayedText}</span>
-      {currentIndex < text.length && (
-        <span className="blinking-cursor ml-[2px] inline-block w-[2px] h-[1em] bg-current align-middle animate-blink">|</span>
-      )}
+      <div className="bubble-content">
+        <span>{displayedText}</span>
+        {currentIndex < text.length && (
+          <span className="blinking-cursor ml-[2px] inline-block w-[2px] h-[1em] bg-current align-middle animate-blink">|</span>
+        )}
+      </div>
     </div>
   );
 };
