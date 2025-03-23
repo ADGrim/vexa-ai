@@ -15,19 +15,18 @@ const TypewriterBubble: React.FC<TypewriterBubbleProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    // Reset animation when text changes
     setDisplayedText('');
     setCurrentIndex(0);
   }, [text]);
 
   useEffect(() => {
     if (currentIndex < text.length) {
-      const charsPerFrame = Math.max(1, Math.floor(text.length / 50)); // Dynamic speed based on length
+      const charsPerFrame = Math.max(1, Math.floor(text.length / 50));
       const timeout = setTimeout(() => {
         const nextIndex = Math.min(currentIndex + charsPerFrame, text.length);
         setDisplayedText(text.slice(0, nextIndex));
         setCurrentIndex(nextIndex);
-      }, 20); // Consistent timing for smooth animation
+      }, 20);
 
       return () => clearTimeout(timeout);
     }
@@ -36,10 +35,10 @@ const TypewriterBubble: React.FC<TypewriterBubbleProps> = ({
   return (
     <div
       className={`
-        max-w-[75%] px-4 py-3 rounded-2xl shadow-md mb-3 bubble-pop transition-all
+        w-full max-w-[95%] px-6 py-4 rounded-xl shadow-sm bubble-pop
         ${isUser 
-          ? 'bg-blue-500 text-white rounded-br-none self-end' 
-          : `${colorScheme || 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white'} rounded-bl-none self-start`}
+          ? 'bg-blue-500 text-white rounded-br-none ml-auto' 
+          : `${colorScheme || 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'} rounded-bl-none mr-auto`}
       `}
     >
       <span>{displayedText}</span>

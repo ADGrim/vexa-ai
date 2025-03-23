@@ -23,10 +23,10 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
       return (
         <div
           className={`
-            max-w-[80%] px-5 py-4 rounded-xl shadow-sm bubble-fade
+            w-full max-w-[95%] px-6 py-4 rounded-xl shadow-sm bubble-fade
             ${msg.sender === 'user'
-              ? 'bg-blue-500 text-white rounded-br-none'
-              : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-bl-none'}
+              ? 'bg-blue-500 text-white rounded-br-none ml-auto'
+              : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-bl-none mr-auto'}
           `}
         >
           <div 
@@ -49,19 +49,19 @@ const VexaMessageBoard: React.FC<VexaMessageBoardProps> = ({ messages, isTyping 
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto px-6 py-4">
+    <div className="flex flex-col h-full overflow-y-auto px-4 py-4 space-y-4">
       {messages.map((msg, idx) => (
         <div 
           key={idx} 
-          className={`my-3 flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} w-full`}
         >
           {renderMessage(msg)}
         </div>
       ))}
 
       {isTyping && (
-        <div className="flex justify-start my-3">
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-5 py-4 rounded-xl rounded-bl-none shadow-sm bubble-fade">
+        <div className="flex justify-start w-full">
+          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-4 rounded-xl rounded-bl-none shadow-sm bubble-fade max-w-[95%]">
             <span className="dot animate-bounce">•</span>
             <span className="dot animate-bounce" style={{ animationDelay: '0.15s' }}>•</span>
             <span className="dot animate-bounce" style={{ animationDelay: '0.3s' }}>•</span>
