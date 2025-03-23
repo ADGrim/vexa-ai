@@ -7,17 +7,21 @@ const openai = new OpenAI({
 
 export async function speakWithNova(text: string): Promise<Blob> {
   try {
+    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+      throw new Error('OpenAI API key is required for Nova voice');
+    }
+
     const response = await openai.audio.speech.create({
       model: "tts-1",
       voice: "nova",
-      input: text
+      input: text,
+      speed: 1.0
     });
 
-    // Convert the response to a blob
     const audioData = await response.arrayBuffer();
     return new Blob([audioData], { type: 'audio/mpeg' });
   } catch (error) {
-    console.error("TTS Error:", error);
+    console.error("Nova TTS Error:", error);
     throw error;
   }
 }
@@ -37,7 +41,7 @@ class VexaVoice {
     source: null
   };
 
-  async speak(text: string, onVisualizerData?: (data: Uint8Array) => void) {
+  async speak(text: string, onVisualizerData?: (data: Uint8Array) => void): Promise<void> {
     try {
       // Clean up previous audio if any
       this.cleanup();
@@ -47,12 +51,19 @@ class VexaVoice {
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
 
-      // Get the audio blob from OpenAI
+      // Get the audio blob from Nova
       const audioBlob = await speakWithNova(text);
       const audioUrl = URL.createObjectURL(audioBlob);
 
       // Create and set up audio element
       const audio = new Audio(audioUrl);
+
+      // Wait for audio to be loaded
+      await new Promise((resolve) => {
+        audio.addEventListener('loadeddata', resolve);
+        audio.load();
+      });
+
       const source = audioContext.createMediaElementSource(audio);
       source.connect(analyser);
       analyser.connect(audioContext.destination);
@@ -82,11 +93,14 @@ class VexaVoice {
 
       // Play the audio
       await audio.play();
-      
-      // Clean up when done
-      audio.addEventListener('ended', () => {
-        this.cleanup();
-        URL.revokeObjectURL(audioUrl);
+
+      // Return a promise that resolves when audio finishes playing
+      return new Promise((resolve) => {
+        audio.addEventListener('ended', () => {
+          this.cleanup();
+          URL.revokeObjectURL(audioUrl);
+          resolve();
+        });
       });
 
     } catch (error) {
