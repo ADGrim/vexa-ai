@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { ImageIcon, PlusIcon, Send, MicroscopeIcon } from "lucide-react";
+import { ImageIcon, Send } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SidebarWaveIcon } from "./SidebarWaveIcon";
 import {
@@ -8,8 +8,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { FancyCloudBubble } from "./FancyCloudBubble";
 import { useToast } from "@/hooks/use-toast";
+import useVoiceHandler from '@/hooks/useVoiceHandler';
 
 interface ChatInputBarProps {
   value: string;
@@ -41,12 +41,20 @@ export function ChatInputBar({
   const [imagePrompt, setImagePrompt] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
+  const { transcript, isListening, startListening } = useVoiceHandler();
 
-  const handleVoiceToggle = () => {
+  useEffect(() => {
+    if (transcript && !isListening) {
+      onChange(transcript);
+      onSubmit();
+    }
+  }, [transcript, isListening]);
+
+  const handleVoiceToggle = async () => {
     if (!onVoiceToggle) return;
 
     if (!voiceEnabled) {
-      // Check browser support before enabling
+      // Check browser support
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         toast({
           variant: "destructive",
@@ -56,31 +64,30 @@ export function ChatInputBar({
         return;
       }
 
-      // Request microphone permission
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          stream.getTracks().forEach(track => track.stop());
-          onVoiceToggle(true);
-        })
-        .catch(error => {
-          console.error("Microphone permission error:", error);
-          toast({
-            variant: "destructive",
-            title: "Voice Chat Error",
-            description: "Please allow microphone access to use voice chat."
-          });
+      try {
+        // Request microphone permission
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+
+        onVoiceToggle(true);
+        startListening();
+
+        toast({
+          title: "Voice Chat Active",
+          description: "Speak now - I'm listening!"
         });
+      } catch (error) {
+        console.error("Microphone permission error:", error);
+        toast({
+          variant: "destructive",
+          title: "Voice Chat Error",
+          description: "Please allow microphone access to use voice chat."
+        });
+      }
     } else {
       onVoiceToggle(false);
     }
   };
-
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.style.height = "40px";
-      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
-    }
-  }, [value]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -89,40 +96,9 @@ export function ChatInputBar({
     }
   };
 
-  const handleGenerateImage = async () => {
-    setShowImagePrompt(true);
-  };
-
-  const handleImagePromptSubmit = async () => {
-    if (imagePrompt.trim()) {
-      setShowImagePrompt(false);
-      setIsGeneratingImage(true);
-      try {
-        await onGenerateImage(imagePrompt);
-      } catch (error) {
-        console.error("Image generation failed:", error);
-        toast({
-          variant: "destructive",
-          title: "Image Generation Failed",
-          description: "Failed to generate image. Please try again."
-        });
-      } finally {
-        setIsGeneratingImage(false);
-        setImagePrompt("");
-      }
-    }
-  };
-
   return (
-    <div className="w-full sticky bottom-0 backdrop-blur-xl bg-black/85 border-t border-white/5 shadow-lg transition-all duration-300 hover:bg-black/90">
+    <div className="w-full sticky bottom-0 backdrop-blur-xl bg-black/85 border-t border-white/10 shadow-lg">
       <div className="p-4 space-y-3">
-        {/* Typing indicator */}
-        {isTyping && (
-          <div className="text-sm text-white/60 animate-pulse pl-2">
-            Vexa is thinking...
-          </div>
-        )}
-
         {/* Message suggestions */}
         {value.trim() === "" && suggestions?.length > 0 && (
           <div className="flex gap-2 mb-3 flex-wrap">
@@ -138,23 +114,6 @@ export function ChatInputBar({
           </div>
         )}
 
-        {/* Style adaptation toggle */}
-        {onStyleToggle && (
-          <>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={styleEnabled}
-                  onCheckedChange={onStyleToggle}
-                  className="data-[state=checked]:bg-purple-500"
-                />
-                <span className="text-sm text-white/80">Speak My Style</span>
-              </div>
-            </div>
-            <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          </>
-        )}
-
         {/* Input area */}
         <div className="flex items-center gap-3">
           {/* Voice toggle */}
@@ -163,81 +122,41 @@ export function ChatInputBar({
               <Button
                 onClick={handleVoiceToggle}
                 className={`rounded-full p-2 transition-all duration-200 ${
-                  voiceEnabled ? 'bg-purple-500/20 text-purple-400 animate-pulse' : 'hover:bg-white/5'
+                  isListening ? 'bg-purple-500/20 text-purple-400 animate-pulse' : 'hover:bg-white/5'
                 }`}
                 variant="ghost"
               >
-                <SidebarWaveIcon className={voiceEnabled ? 'animate-pulse' : ''} />
+                <SidebarWaveIcon className={isListening ? 'animate-pulse' : ''} />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {voiceEnabled ? 'Disable voice chat' : 'Enable voice chat'}
+              {isListening ? 'Listening... Click to stop' : 'Click to use voice'}
             </TooltipContent>
           </Tooltip>
 
           {/* Text input */}
-          <div className="flex-1 relative">
+          <div className="flex-1">
             <textarea
               ref={inputRef}
               className="w-full min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-base bg-white/5 border-none focus:ring-2 focus:ring-purple-500/30 resize-none overflow-hidden text-white placeholder-white/40"
-              placeholder={voiceEnabled ? "Voice mode active - Click the wave to speak" : "Type a message..."}
+              placeholder={isListening ? "Listening... Speak your message" : "Type your message..."}
               value={value}
               onChange={(e) => onChange(e.target.value)}
               onKeyDown={handleKeyPress}
-              disabled={voiceEnabled}
+              disabled={isListening}
             />
           </div>
-
-          {/* Image generation button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={handleGenerateImage}
-                className="rounded-full p-2 hover:bg-emerald-500/10 transition-all duration-200"
-                variant="ghost"
-                disabled={isGeneratingImage || showImagePrompt}
-              >
-                <ImageIcon className="w-6 h-6 text-emerald-500" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate image</TooltipContent>
-          </Tooltip>
 
           {/* Send button */}
           <Button
             onClick={onSubmit}
             className="rounded-full p-2 hover:bg-purple-500/10 transition-all duration-200 hover:shadow-sm disabled:opacity-50"
             variant="ghost"
-            disabled={!value.trim() || isGeneratingImage}
+            disabled={!value.trim() || isGeneratingImage || isListening}
           >
             <Send className="w-6 h-6 text-purple-500" />
           </Button>
         </div>
-
-        {/* Image prompt popup */}
-        {showImagePrompt && (
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 w-full max-w-md">
-            <div className="relative bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 p-4 rounded-3xl shadow-xl animate-float">
-              <input
-                type="text"
-                value={imagePrompt}
-                onChange={(e) => setImagePrompt(e.target.value)}
-                placeholder="What kind of image would you like me to generate?"
-                className="w-full p-2 rounded-xl bg-white/90 border-none focus:ring-2 focus:ring-purple-500 text-black placeholder-gray-500"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleImagePromptSubmit();
-                  } else if (e.key === "Escape") {
-                    setShowImagePrompt(false);
-                    setImagePrompt("");
-                  }
-                }}
-                autoFocus
-              />
-              <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 transform rotate-45 -translate-x-1/2 translate-y-2"></div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

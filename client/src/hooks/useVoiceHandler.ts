@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface UseVoiceHandlerReturn {
   transcript: string;
   isListening: boolean;
   startListening: () => void;
+  stopListening: () => void;
 }
 
 declare global {
@@ -15,40 +16,67 @@ declare global {
 const useVoiceHandler = (): UseVoiceHandlerReturn => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
-
-  let recognition: SpeechRecognition | null = null;
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
       const SpeechRecognition = window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = 'en-GB'; // British English
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+        setTranscript('');
+      };
+
+      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
         const lastResult = event.results[event.results.length - 1];
         if (lastResult.isFinal) {
           setTranscript(lastResult[0].transcript.trim());
+          stopListening();
         }
       };
-      recognition.onerror = (e) => {
+
+      recognitionRef.current.onerror = (e) => {
         console.error('Speech Recognition Error:', e.error);
         setIsListening(false);
       };
-      recognition.onend = () => {
+
+      recognitionRef.current.onend = () => {
         setIsListening(false);
       };
     }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
   }, []);
 
   const startListening = () => {
-    if (recognition) {
-      recognition.start();
-      setIsListening(true);
+    if (recognitionRef.current && !isListening) {
+      try {
+        recognitionRef.current.start();
+      } catch (error) {
+        console.error('Error starting recognition:', error);
+      }
     }
   };
 
-  return { transcript, isListening, startListening };
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.error('Error stopping recognition:', error);
+      }
+    }
+  };
+
+  return { transcript, isListening, startListening, stopListening };
 };
 
 export default useVoiceHandler;
