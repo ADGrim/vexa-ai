@@ -1,8 +1,7 @@
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { SidebarWaveIcon } from "./SidebarWaveIcon";
 import { useToast } from "@/hooks/use-toast";
 import { useVoiceHandler } from '@/hooks/useVoiceHandler';
+import WaveButton from './WaveButton';
 
 interface VexaVoiceButtonProps {
   onTranscript: (text: string) => void;
@@ -13,20 +12,25 @@ export function VexaVoiceButton({ onTranscript, className = '' }: VexaVoiceButto
   const { toast } = useToast();
   const { startListening, stopListening, listening } = useVoiceHandler({
     onTranscript: (text) => {
+      console.log('VexaVoiceButton received transcript:', text);
       onTranscript(text);
-      console.log('Transcript:', text);
+      stopListening();
     }
   });
 
   const handleClick = async () => {
     if (listening) {
+      console.log('Stopping voice recognition...');
       stopListening();
       return;
     }
 
     try {
+      console.log('Requesting microphone permission...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop());
+
+      console.log('Starting voice recognition...');
       startListening();
 
       toast({
@@ -44,15 +48,13 @@ export function VexaVoiceButton({ onTranscript, className = '' }: VexaVoiceButto
   };
 
   return (
-    <Button
-      onClick={handleClick}
-      className={`rounded-full p-2 transition-all duration-200 ${
-        listening ? 'bg-purple-500/20 text-purple-400 animate-pulse' : 'hover:bg-white/5'
-      } ${className}`}
-      variant="ghost"
-    >
-      <SidebarWaveIcon className={listening ? 'animate-pulse' : ''} />
-    </Button>
+    <div className="relative">
+      <WaveButton
+        onClick={handleClick}
+        listening={listening}
+        className={className}
+      />
+    </div>
   );
 }
 

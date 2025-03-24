@@ -14,8 +14,6 @@ interface ChatInputBarProps {
   onSubmit: () => void;
   isTyping?: boolean;
   suggestions?: string[];
-  voiceEnabled?: boolean;
-  onVoiceToggle?: (enabled: boolean) => void;
 }
 
 export function ChatInputBar({
@@ -23,9 +21,7 @@ export function ChatInputBar({
   onChange,
   onSubmit,
   isTyping = false,
-  suggestions = [],
-  voiceEnabled = false,
-  onVoiceToggle
+  suggestions = []
 }: ChatInputBarProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -62,7 +58,9 @@ export function ChatInputBar({
         {/* Voice button */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <VexaVoiceButton onTranscript={handleTranscript} />
+            <div className="flex">
+              <VexaVoiceButton onTranscript={handleTranscript} />
+            </div>
           </TooltipTrigger>
           <TooltipContent>
             Click to use voice chat
