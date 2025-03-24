@@ -1,20 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { ImageIcon, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { SidebarWaveIcon } from "./SidebarWaveIcon";
-import { useToast } from "@/hooks/use-toast";
-import useVoiceHandler from '@/hooks/useVoiceHandler';
+import { VexaVoiceButton } from "./VexaVoiceButton";
 
 interface ChatInputBarProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
-  onGenerateImage: (prompt: string) => Promise<void>;
   isTyping?: boolean;
   suggestions?: string[];
   voiceEnabled?: boolean;
@@ -25,60 +22,23 @@ export function ChatInputBar({
   value,
   onChange,
   onSubmit,
-  onGenerateImage,
   isTyping = false,
   suggestions = [],
   voiceEnabled = false,
   onVoiceToggle
 }: ChatInputBarProps) {
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const { toast } = useToast();
-  const { transcript, isListening, startListening, stopListening } = useVoiceHandler();
-
-  React.useEffect(() => {
-    if (transcript && !isListening) {
-      onChange(transcript);
-      onSubmit();
-    }
-  }, [transcript, isListening]);
-
-  const handleVoiceToggle = async () => {
-    if (!onVoiceToggle) return;
-
-    if (!voiceEnabled) {
-      try {
-        // Request microphone permission
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(track => track.stop());
-
-        onVoiceToggle(true);
-        startListening();
-
-        toast({
-          title: "Voice Chat Active",
-          description: "Speak now - I'm listening!"
-        });
-      } catch (error) {
-        console.error("Microphone permission error:", error);
-        toast({
-          variant: "destructive",
-          title: "Voice Chat Error",
-          description: "Please allow microphone access to use voice chat."
-        });
-        onVoiceToggle(false);
-      }
-    } else {
-      stopListening();
-      onVoiceToggle(false);
-    }
-  };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       onSubmit();
     }
+  };
+
+  const handleTranscript = (text: string) => {
+    onChange(text);
+    onSubmit();
   };
 
   return (
@@ -99,21 +59,13 @@ export function ChatInputBar({
       )}
 
       <div className="flex items-center gap-3">
-        {/* Voice toggle */}
+        {/* Voice button */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              onClick={handleVoiceToggle}
-              className={`rounded-full p-2 transition-all duration-200 ${
-                isListening ? 'bg-purple-500/20 text-purple-400 animate-pulse' : 'hover:bg-white/5'
-              }`}
-              variant="ghost"
-            >
-              <SidebarWaveIcon className={isListening ? 'animate-pulse' : ''} />
-            </Button>
+            <VexaVoiceButton onTranscript={handleTranscript} />
           </TooltipTrigger>
           <TooltipContent>
-            {isListening ? 'Listening... Click to stop' : 'Click to use voice'}
+            Click to use voice chat
           </TooltipContent>
         </Tooltip>
 
@@ -122,11 +74,10 @@ export function ChatInputBar({
           <textarea
             ref={inputRef}
             className="w-full min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-base bg-white/5 border-none focus:ring-2 focus:ring-purple-500/30 resize-none overflow-hidden text-white placeholder-white/40"
-            placeholder={isListening ? "Listening... Speak your message" : "Type your message..."}
+            placeholder="Type your message..."
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyPress}
-            disabled={isListening}
           />
         </div>
 
@@ -135,7 +86,7 @@ export function ChatInputBar({
           onClick={onSubmit}
           className="rounded-full p-2 hover:bg-purple-500/10 transition-all duration-200 hover:shadow-sm disabled:opacity-50"
           variant="ghost"
-          disabled={!value.trim() || isGeneratingImage || isListening}
+          disabled={!value.trim() || isTyping}
         >
           <Send className="w-6 h-6 text-purple-500" />
         </Button>

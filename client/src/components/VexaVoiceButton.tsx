@@ -1,44 +1,58 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Button } from "@/components/ui/button";
 import { SidebarWaveIcon } from "./SidebarWaveIcon";
-import { vexaVoice } from "@/lib/vexaVoice";
+import { useToast } from "@/hooks/use-toast";
+import { useVoiceHandler } from '@/hooks/useVoiceHandler';
 
 interface VexaVoiceButtonProps {
-  onVoiceStart?: () => void;
-  onVoiceEnd?: () => void;
-  textToSpeak?: string;
+  onTranscript: (text: string) => void;
+  className?: string;
 }
 
-export function VexaVoiceButton({ onVoiceStart, onVoiceEnd, textToSpeak }: VexaVoiceButtonProps) {
-  const [speaking, setSpeaking] = useState(false);
+export function VexaVoiceButton({ onTranscript, className = '' }: VexaVoiceButtonProps) {
+  const { toast } = useToast();
+  const { startListening, stopListening, listening } = useVoiceHandler({
+    onTranscript: (text) => {
+      onTranscript(text);
+      console.log('Transcript:', text);
+    }
+  });
 
   const handleClick = async () => {
-    if (speaking) return;
-    
-    try {
-      setSpeaking(true);
-      onVoiceStart?.();
+    if (listening) {
+      stopListening();
+      return;
+    }
 
-      await vexaVoice.speak(
-        textToSpeak || "Hello! I'm Vexa, created by Adom. How can I help?"
-      );
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      startListening();
+
+      toast({
+        title: "Voice Chat Active",
+        description: "Speak now - I'm listening!"
+      });
     } catch (error) {
-      console.error("Voice error:", error);
-    } finally {
-      setSpeaking(false);
-      onVoiceEnd?.();
+      console.error("Microphone permission error:", error);
+      toast({
+        variant: "destructive",
+        title: "Voice Chat Error",
+        description: "Please allow microphone access to use voice chat."
+      });
     }
   };
 
   return (
-    <button
+    <Button
       onClick={handleClick}
-      className="p-2 rounded-full hover:bg-purple-500/10 transition-all duration-200 disabled:opacity-50"
-      disabled={speaking}
+      className={`rounded-full p-2 transition-all duration-200 ${
+        listening ? 'bg-purple-500/20 text-purple-400 animate-pulse' : 'hover:bg-white/5'
+      } ${className}`}
+      variant="ghost"
     >
-      <div className={`${speaking ? 'wave-responding' : ''}`}>
-        <SidebarWaveIcon className="w-6 h-6 text-purple-500" />
-      </div>
-    </button>
+      <SidebarWaveIcon className={listening ? 'animate-pulse' : ''} />
+    </Button>
   );
 }
 

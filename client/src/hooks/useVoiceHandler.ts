@@ -1,82 +1,61 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
-interface UseVoiceHandlerReturn {
-  transcript: string;
-  isListening: boolean;
-  startListening: () => void;
-  stopListening: () => void;
+interface VoiceHandlerProps {
+  onTranscript: (text: string) => void;
 }
 
 declare global {
   interface Window {
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: any;
+    SpeechRecognition: any;
   }
 }
 
-const useVoiceHandler = (): UseVoiceHandlerReturn => {
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+export const useVoiceHandler = ({ onTranscript }: VoiceHandlerProps) => {
+  const [listening, setListening] = useState(false);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
 
   useEffect(() => {
-    if ('webkitSpeechRecognition' in window) {
-      const SpeechRecognition = window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = 'en-US';
-
-      recognitionRef.current.onstart = () => {
-        setIsListening(true);
-        setTranscript('');
-      };
-
-      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
-        const lastResult = event.results[event.results.length - 1];
-        if (lastResult.isFinal) {
-          setTranscript(lastResult[0].transcript.trim());
-          stopListening();
-        }
-      };
-
-      recognitionRef.current.onerror = (e) => {
-        console.error('Speech Recognition Error:', e.error);
-        setIsListening(false);
-      };
-
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
+    if (!('webkitSpeechRecognition' in window)) {
+      console.error('Web Speech API not supported in this browser.');
+      return;
     }
+    const SpeechRecognitionConstructor = window.webkitSpeechRecognition || window.SpeechRecognition;
+    const recog = new SpeechRecognitionConstructor();
+    recog.lang = 'en-GB'; // British accent recognition
+    recog.interimResults = false;
+    recog.continuous = false;
 
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.abort();
-      }
+    recog.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript.trim();
+      onTranscript(transcript);
     };
-  }, []);
+
+    recog.onerror = (event: any) => {
+      console.error('Recognition error:', event.error);
+      setListening(false);
+    };
+
+    recog.onend = () => setListening(false);
+
+    setRecognition(recog);
+  }, [onTranscript]);
 
   const startListening = () => {
-    if (recognitionRef.current && !isListening) {
-      try {
-        recognitionRef.current.start();
-      } catch (error) {
-        console.error('Error starting recognition:', error);
-      }
+    if (recognition) {
+      setListening(true);
+      recognition.start();
     }
   };
 
   const stopListening = () => {
-    if (recognitionRef.current && isListening) {
-      try {
-        recognitionRef.current.stop();
-      } catch (error) {
-        console.error('Error stopping recognition:', error);
-      }
+    if (recognition) {
+      recognition.stop();
+      setListening(false);
     }
   };
 
-  return { transcript, isListening, startListening, stopListening };
+  return { startListening, stopListening, listening };
 };
 
 export default useVoiceHandler;
