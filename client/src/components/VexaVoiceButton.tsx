@@ -10,27 +10,22 @@ interface VexaVoiceButtonProps {
 
 export function VexaVoiceButton({ onTranscript, className = '' }: VexaVoiceButtonProps) {
   const { toast } = useToast();
-  const { startListening, stopListening, listening } = useVoiceHandler({
-    onTranscript: (text) => {
-      console.log('VexaVoiceButton received transcript:', text);
-      onTranscript(text);
-      stopListening();
-    }
+  const { startListening, stopListening, listening } = useVoiceHandler((text) => {
+    console.log('VexaVoiceButton received transcript:', text);
+    onTranscript(text);
   });
 
   const handleClick = async () => {
     if (listening) {
-      console.log('Stopping voice recognition...');
       stopListening();
       return;
     }
 
     try {
-      console.log('Requesting microphone permission...');
+      // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop());
 
-      console.log('Starting voice recognition...');
       startListening();
 
       toast({

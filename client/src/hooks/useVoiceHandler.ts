@@ -1,82 +1,52 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
-interface VoiceHandlerProps {
-  onTranscript: (text: string) => void;
-}
-
-declare global {
-  interface Window {
-    webkitSpeechRecognition: any;
-    SpeechRecognition: any;
-  }
-}
-
-export const useVoiceHandler = ({ onTranscript }: VoiceHandlerProps) => {
+export function useVoiceHandler(callback: (text: string) => void) {
   const [listening, setListening] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
+  let recognition: SpeechRecognition | null = null;
 
-  useEffect(() => {
+  const startListening = () => {
     if (!('webkitSpeechRecognition' in window)) {
-      console.error('Web Speech API not supported in this browser.');
+      alert('Voice recognition not supported in this browser.');
       return;
     }
+    recognition = new (window as any).webkitSpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-GB'; // British accent
 
-    const SpeechRecognitionConstructor = window.webkitSpeechRecognition || window.SpeechRecognition;
-    const recog = new SpeechRecognitionConstructor();
-    recog.lang = 'en-US';  // Changed from en-GB to ensure wider compatibility
-    recog.interimResults = false;
-    recog.continuous = false;
-
-    recog.onstart = () => {
+    recognition.onstart = () => {
       console.log('Voice recognition started');
       setListening(true);
     };
 
-    recog.onresult = (event: any) => {
-      console.log('Voice recognition result received');
-      const transcript = event.results[0][0].transcript.trim();
-      console.log('Transcript:', transcript);
-      onTranscript(transcript);
-    };
-
-    recog.onerror = (event: any) => {
-      console.error('Voice recognition error:', event.error);
-      setListening(false);
-    };
-
-    recog.onend = () => {
+    recognition.onend = () => {
       console.log('Voice recognition ended');
       setListening(false);
     };
 
-    setRecognition(recog);
-  }, [onTranscript]);
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      console.log('Voice recognition result received');
+      const transcript = event.results[0][0].transcript;
+      console.log('Transcript:', transcript);
+      callback(transcript);
+      recognition?.stop();
+    };
 
-  const startListening = () => {
-    if (recognition) {
-      try {
-        console.log('Starting voice recognition...');
-        recognition.start();
-      } catch (error) {
-        console.error('Error starting recognition:', error);
-        setListening(false);
-      }
-    }
+    recognition.onerror = (event: any) => {
+      console.error('Voice recognition error:', event.error);
+      setListening(false);
+    };
+
+    recognition.start();
   };
 
   const stopListening = () => {
     if (recognition) {
-      try {
-        console.log('Stopping voice recognition...');
-        recognition.stop();
-      } catch (error) {
-        console.error('Error stopping recognition:', error);
-      }
-      setListening(false);
+      recognition.stop();
     }
   };
 
   return { startListening, stopListening, listening };
-};
+}
 
 export default useVoiceHandler;
