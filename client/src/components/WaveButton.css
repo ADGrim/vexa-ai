@@ -17,16 +17,18 @@
   animation: pulse 1.5s infinite;
   transition: all 0.3s ease;
   opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wave.listening {
   opacity: 1;
 }
 
-.mic-icon {
-  position: relative;
-  z-index: 2;
-  font-size: 32px;
+.wave-svg {
+  width: 40px;
+  height: 40px;
   color: white;
 }
 
