@@ -32,6 +32,8 @@
     "mobius-loader",
     "voice-mobius",
     "wave-animation",
+    "intro-animation",
+    "welcome-screen",
     "conversation-memory",
     "text-to-speech",
     "voice-recognition",
@@ -42,7 +44,10 @@
     "rotating-animation",
     "gpt-4o",
     "websocket",
-    "real-time-communication"
+    "real-time-communication",
+    "profile-dropdown",
+    "user-menu",
+    "ui-components"
   ],
   "scripts": {
     "build": "tsc",
@@ -53,7 +58,9 @@
     "*.d.ts",
     "*.tsx",
     "*.ts", 
-    "README.md"
+    "README.md",
+    "assets/*",
+    "examples/*"
   ],
   "author": "Vexa Team",
   "license": "MIT",

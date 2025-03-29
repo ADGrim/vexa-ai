@@ -1,6 +1,8 @@
 // Core React Native Components
 export { default as VexaChat } from './VexaChat';
 export { default as VexaMobileChat } from './VexaMobileChat';
+export { default as VexaIntro } from './VexaIntro';
+export { default as ProfileDropdown } from './ProfileDropdown';
 export { VoiceButton } from './VoiceButton';
 export { WaveAnimation } from './WaveAnimation';
 export { default as MobiusWave } from './MobiusWave';

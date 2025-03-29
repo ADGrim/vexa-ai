@@ -267,6 +267,54 @@ import { VoiceMobius } from 'vexa-voice-chat';
 />
 ```
 
+### VexaIntro
+A stylish animated introduction screen for Vexa applications.
+
+```jsx
+import { VexaIntro } from 'vexa-voice-chat';
+
+// Basic usage
+<VexaIntro />
+
+// With completion callback
+<VexaIntro 
+  onIntroComplete={() => setShowIntro(false)}
+  customStyles={{
+    container: { backgroundColor: '#000' },
+    text: { color: '#a855f7' },
+    subtitle: { color: 'rgba(255,255,255,0.8)' }
+  }}
+/>
+```
+
+### ProfileDropdown
+A customizable profile dropdown menu for React Native mobile interfaces.
+
+```jsx
+import { ProfileDropdown } from 'vexa-voice-chat';
+
+// Basic usage
+<ProfileDropdown />
+
+// With custom options
+<ProfileDropdown 
+  userName="Vexa User"
+  onSettingsPress={() => navigation.navigate('Settings')}
+  onVoiceModePress={() => toggleVoiceMode()}
+  onLogoutPress={() => handleLogout()}
+  profileImage={require('./assets/user-profile.png')}
+/>
+```
+
+Props:
+- `userName`: Display name shown in the dropdown (default: "Vexa AI")
+- `onSettingsPress`: Function called when Settings is pressed
+- `onVoiceModePress`: Function called when Voice Mode is pressed
+- `onLogoutPress`: Function called when Logout is pressed
+- `profileImage`: Custom profile image (uses placeholder if not provided)
+
+For a complete implementation example, see [ProfileDropdownExample.tsx](examples/ProfileDropdownExample.tsx)
+
 ### Voice
 Text-to-speech functionality with configurable voice settings.
 
@@ -288,6 +336,11 @@ Utilities for persistent storage of conversations and settings.
 - Real-time communication via WebSockets
 - Multiple visual loading animations (MobiusStrip, MobiusLoader, VoiceMobius)
 - 3D rotating animations compatible with both web and React Native
+- Stylish animated intro screens with VexaIntro component
+- User-friendly profile dropdown menu with settings options
+- Customizable UI components for mobile interfaces
+- Fade-in, fade-out animations with customizable durations
+- Welcome screen with audio introduction
 - TypeScript support
 - Expo-optimized animations
 - Complete example implementation with working UI

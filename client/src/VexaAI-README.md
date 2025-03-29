@@ -45,11 +45,14 @@ lib/                 # Core functionality and utilities
 ├── ...              # Other utility functions
 
 expo-components/     # Expo/React Native compatible components
-├── VoiceButton.tsx  # Voice input button for mobile
-├── WaveAnimation.tsx # Audio visualization for mobile
+├── VoiceButton.tsx       # Voice input button for mobile
+├── WaveAnimation.tsx     # Audio visualization for mobile
+├── ProfileDropdown.tsx   # User menu for mobile interface
+├── VexaIntro.tsx         # Animated welcome screen
 ├── Voice.tsx             # Text-to-speech for Expo
 ├── memory.ts             # FileSystem storage for mobile
 ├── AsyncStorageMemory.ts # Alternative storage using AsyncStorage
+├── examples/             # Sample implementations
 ├── ...                   # Other mobile components
 
 pages/               # Complete page components
@@ -148,12 +151,42 @@ await clearAllMemory();
 ### Complete Application
 For a full implementation, see the `pages/VexaAI.tsx` component which demonstrates how all pieces work together.
 
+### Mobile UI Components
+VexaAI includes specialized components for React Native mobile applications:
+
+```jsx
+import { 
+  ProfileDropdown,
+  VexaIntro,
+  VoiceButton,
+  WaveAnimation
+} from 'vexa-expo-components';
+
+// User profile dropdown menu
+<ProfileDropdown 
+  userName="User Name"
+  onSettingsPress={() => navigation.navigate('Settings')}
+  onVoiceModePress={() => toggleVoiceMode()}
+  onLogoutPress={() => handleLogout()}
+/>
+
+// Animated welcome screen with voice introduction
+<VexaIntro onIntroComplete={() => setShowIntro(false)} />
+
+// Voice input button with animated wave effect
+<VoiceButton onTranscript={text => processUserSpeech(text)} />
+
+// Full examples are available in the expo-components/examples directory
+```
+
 ## Customization
 
 ### Visual Styling
 - Modify the color schemes in `MoodSyncWrapper.tsx` for different themes
 - Adjust the chat bubble styling in `ChatBubble.tsx`
 - Customize animations in the various animation components
+- Configure the welcome experience with `VexaIntro` component
+- Personalize the mobile interface with `ProfileDropdown` component
 
 ### Voice Configuration
 - Change the voice settings in `vexaVoice.ts` for web
