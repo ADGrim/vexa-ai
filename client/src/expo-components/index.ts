@@ -31,6 +31,7 @@ export {
 // Visual effects and visualizations
 export { MobiusStrip } from './MobiusStrip';
 export { default as MobiusLoader } from './MobiusLoader';
+export { default as VoiceMobius } from './VoiceMobius';
 
 // Text-to-speech
 export { speakAsNova, isSpeaking, stopSpeaking, getAvailableVoices } from './Voice';

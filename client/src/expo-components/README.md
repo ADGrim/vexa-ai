@@ -249,6 +249,24 @@ import { MobiusLoader } from 'vexa-voice-chat';
 />
 ```
 
+### VoiceMobius
+A 3D rotating animation inspired by a Möbius strip, perfect for indicating active voice listening.
+
+```jsx
+import { VoiceMobius } from 'vexa-voice-chat';
+
+// Basic usage
+<VoiceMobius />
+
+// With custom properties
+<VoiceMobius
+  size={150}           // Size in pixels (default: 150)
+  color="#8e44ad"      // Border and shadow color (default: #8e44ad)
+  isActive={listening} // Control animation (default: true)
+  style={{ margin: 10 }} // Additional styles (React Native only)
+/>
+```
+
 ### Voice
 Text-to-speech functionality with configurable voice settings.
 
@@ -268,7 +286,8 @@ Utilities for persistent storage of conversations and settings.
 - Persistent storage for conversations and preferences
 - Microphone permission handling
 - Real-time communication via WebSockets
-- Multiple visual loading animations (MobiusStrip, MobiusLoader)
+- Multiple visual loading animations (MobiusStrip, MobiusLoader, VoiceMobius)
+- 3D rotating animations compatible with both web and React Native
 - TypeScript support
 - Expo-optimized animations
 - Complete example implementation with working UI

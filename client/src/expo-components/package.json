@@ -1,7 +1,7 @@
 {
   "name": "vexa-expo-components",
-  "version": "1.0.0",
-  "description": "Advanced AI voice chat and visualization components for React Native and Expo applications",
+  "version": "1.1.0",
+  "description": "Advanced AI voice chat and 3D visualization components for React Native, Expo, and web applications",
   "main": "index.ts",
   "types": "index.ts",
   "peerDependencies": {
@@ -30,6 +30,7 @@
     "vexa",
     "mobius-strip",
     "mobius-loader",
+    "voice-mobius",
     "wave-animation",
     "conversation-memory",
     "text-to-speech",
@@ -37,7 +38,9 @@
     "async-storage",
     "persistent-storage",
     "3d-visualization",
-    "gpt-4",
+    "3d-animation",
+    "rotating-animation",
+    "gpt-4o",
     "websocket",
     "real-time-communication"
   ],

@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import useVoiceHandler from '@/hooks/useVoiceHandler';
 import MobiusStrip from '@/components/effects/MobiusStrip';
 import MobiusLoader from '@/components/effects/MobiusLoader';
+import VoiceMobius from '@/components/effects/VoiceMobius';
 import { getVoiceVolumeAnalyzer } from '@/lib/voiceVolume';
 
 interface VexaVoiceListenerProps {
@@ -100,6 +101,10 @@ const VexaVoiceListener: React.FC<VexaVoiceListenerProps> = ({
       {listening && (
         <>
           {/* MobiusStrip for volume visualization */}
+          <div className="absolute -top-24 -left-24 -z-10 scale-50 opacity-80">
+            <VoiceMobius size={80} isActive={listening} />
+          </div>
+          
           <div className="absolute -top-10 -left-6 z-10">
             <MobiusStrip volume={volume} size="sm" color="#9c27b0" />
           </div>
