@@ -7,10 +7,13 @@ import WaveButton from '@/components/WaveButton';
 import MobiusStrip from '@/components/effects/MobiusStrip';
 import ThreeMobiusStrip from '@/components/effects/ThreeMobiusStrip';
 import ThreeMobiusStripV2 from '@/components/effects/ThreeMobiusStripV2';
+import MobiusVisualizer from '@/components/effects/MobiusVisualizer';
 import useMicVolume from '@/hooks/useMicVolume';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export default function VoiceDemo() {
   const [simulationMode, setSimulationMode] = useState(true);
@@ -18,6 +21,7 @@ export default function VoiceDemo() {
   const [listening, setListening] = useState(false);
   const [activeDemoTab, setActiveDemoTab] = useState('visualizer');
   const [mobiusType, setMobiusType] = useState<'2d' | '3d' | '3dv2'>('3dv2');
+  const [fullscreenMobius, setFullscreenMobius] = useState(false);
   
   // Reference to the 3D Mobius strip mesh for the interactive controls
   const mobiusRef = useRef<THREE.Mesh | null>(null);
@@ -96,6 +100,20 @@ export default function VoiceDemo() {
                         className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
                         style={{ width: `${volume * 100}%` }}
                       />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-4">
+                    <span className="text-sm">Fullscreen Möbius Strip</span>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="settings-fullscreen-toggle"
+                        checked={fullscreenMobius}
+                        onCheckedChange={setFullscreenMobius}
+                      />
+                      <Label htmlFor="settings-fullscreen-toggle" className="text-xs text-gray-400 cursor-pointer">
+                        {fullscreenMobius ? 'On' : 'Off'}
+                      </Label>
                     </div>
                   </div>
                 </div>
@@ -299,6 +317,7 @@ export default function VoiceDemo() {
                         <li><strong>2D Canvas:</strong> Lightweight SVG-based Mobius visualization</li>
                         <li><strong>3D Component:</strong> Basic Three.js torus knot approximation</li>
                         <li><strong>3D Modular API:</strong> Mathematically accurate Mobius strip using parametric equations</li>
+                        <li><strong>Fullscreen Mode:</strong> Immersive experience with particle effects (toggle in settings)</li>
                       </ul>
                     </div>
                     
@@ -340,6 +359,14 @@ export default function VoiceDemo() {
                         >
                           Toggle Metalness
                         </Button>
+                        <Button
+                          variant={fullscreenMobius ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setFullscreenMobius(!fullscreenMobius)}
+                          className="text-xs"
+                        >
+                          {fullscreenMobius ? "Exit Fullscreen" : "Go Fullscreen"}
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -347,6 +374,26 @@ export default function VoiceDemo() {
               </Card>
             </TabsContent>
           </Tabs>
+        </div>
+      </div>
+      {/* Fullscreen Möbius Visualization */}
+      <MobiusVisualizer 
+        active={fullscreenMobius}
+        volume={volume}
+        color="#8e44ad"
+      />
+      
+      {/* Floating Controls for Fullscreen Mode */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="bg-black/40 backdrop-blur-lg rounded-full px-4 py-2 border border-white/10 flex items-center gap-4">
+          <Label htmlFor="fullscreen-toggle" className="text-sm text-gray-300 cursor-pointer">
+            Fullscreen Möbius
+          </Label>
+          <Switch
+            id="fullscreen-toggle"
+            checked={fullscreenMobius}
+            onCheckedChange={setFullscreenMobius}
+          />
         </div>
       </div>
     </div>
