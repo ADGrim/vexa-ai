@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import * as THREE from 'three';
 import VoiceSidebar from '@/components/VoiceSidebar';
 import VoiceVisualizer from '@/components/VoiceVisualizer';
 import TypewriterBubble from '@/components/TypewriterBubble';
 import WaveButton from '@/components/WaveButton';
 import MobiusStrip from '@/components/effects/MobiusStrip';
 import ThreeMobiusStrip from '@/components/effects/ThreeMobiusStrip';
+import ThreeMobiusStripV2 from '@/components/effects/ThreeMobiusStripV2';
 import useMicVolume from '@/hooks/useMicVolume';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,7 +17,10 @@ export default function VoiceDemo() {
   const volume = useMicVolume(simulationMode);
   const [listening, setListening] = useState(false);
   const [activeDemoTab, setActiveDemoTab] = useState('visualizer');
-  const [mobiusType, setMobiusType] = useState<'2d' | '3d'>('3d');
+  const [mobiusType, setMobiusType] = useState<'2d' | '3d' | '3dv2'>('3dv2');
+  
+  // Reference to the 3D Mobius strip mesh for the interactive controls
+  const mobiusRef = useRef<THREE.Mesh | null>(null);
   
   const demoText = "This is a demonstration of the futuristic chat interface with circular message bubbles, gradient backgrounds, and interactive voice visualizations. Vexa's advanced multimodal AI capabilities are displayed through dynamic animations and responsive UI elements.";
   
@@ -29,9 +34,26 @@ export default function VoiceDemo() {
             <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
               Vexa Voice Interface Components
             </h1>
-            <p className="text-gray-400 max-w-2xl mx-auto">
+            <p className="text-gray-400 max-w-2xl mx-auto mb-3">
               Explore the futuristic UI components with voice-activated animations and responsive design elements.
             </p>
+            <div className="flex flex-wrap justify-center gap-2 text-xs">
+              <span className="px-2 py-1 rounded-full bg-purple-600/20 border border-purple-500/30 backdrop-blur-sm text-purple-300">
+                Voice Reactivity
+              </span>
+              <span className="px-2 py-1 rounded-full bg-pink-600/20 border border-pink-500/30 backdrop-blur-sm text-pink-300">
+                Circular Chat Bubbles
+              </span>
+              <span className="px-2 py-1 rounded-full bg-indigo-600/20 border border-indigo-500/30 backdrop-blur-sm text-indigo-300">
+                Typewriter Animations
+              </span>
+              <span className="px-2 py-1 rounded-full bg-blue-600/20 border border-blue-500/30 backdrop-blur-sm text-blue-300">
+                Möbius Strip Visualizations
+              </span>
+              <span className="px-2 py-1 rounded-full bg-cyan-600/20 border border-cyan-500/30 backdrop-blur-sm text-cyan-300">
+                Three.js 3D Effects
+              </span>
+            </div>
           </header>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -220,20 +242,27 @@ export default function VoiceDemo() {
                 </CardHeader>
                 <CardContent className="py-8">
                   <div className="flex flex-col items-center space-y-6">
-                    <div className="flex space-x-4 justify-center">
+                    <div className="flex space-x-2 justify-center">
                       <Button 
                         variant={mobiusType === '2d' ? 'default' : 'outline'}
                         onClick={() => setMobiusType('2d')}
-                        className="w-32"
+                        className="w-auto"
                       >
                         2D Canvas
                       </Button>
                       <Button 
                         variant={mobiusType === '3d' ? 'default' : 'outline'}
                         onClick={() => setMobiusType('3d')}
-                        className="w-32"
+                        className="w-auto"
                       >
-                        3D WebGL
+                        3D Component
+                      </Button>
+                      <Button 
+                        variant={mobiusType === '3dv2' ? 'default' : 'outline'}
+                        onClick={() => setMobiusType('3dv2')}
+                        className="w-auto"
+                      >
+                        3D Modular API
                       </Button>
                     </div>
                     
@@ -242,11 +271,19 @@ export default function VoiceDemo() {
                         <div className="transform scale-150">
                           <MobiusStrip volume={volume} color="#6d28d9" size="lg" />
                         </div>
-                      ) : (
+                      ) : mobiusType === '3d' ? (
                         <ThreeMobiusStrip 
                           volume={volume} 
                           size={240} 
                           color="#6d28d9" 
+                        />
+                      ) : (
+                        <ThreeMobiusStripV2
+                          volume={volume}
+                          size={240}
+                          color="#6d28d9"
+                          wireframe={true}
+                          meshRef={mobiusRef}
                         />
                       )}
                     </div>
@@ -255,7 +292,56 @@ export default function VoiceDemo() {
                       <p>This Mobius strip visualization reacts to voice input volume. The rotation speed, 
                       glow intensity, and opacity all change based on voice activity.</p>
                       <p className="mt-2">Try adjusting the volume slider above to see the effect.</p>
+                      <p className="mt-4">
+                        <strong>Available Implementations:</strong>
+                      </p>
+                      <ul className="list-disc list-inside text-left mt-2 space-y-1">
+                        <li><strong>2D Canvas:</strong> Lightweight SVG-based Mobius visualization</li>
+                        <li><strong>3D Component:</strong> Basic Three.js torus knot approximation</li>
+                        <li><strong>3D Modular API:</strong> Mathematically accurate Mobius strip using parametric equations</li>
+                      </ul>
                     </div>
+                    
+                    {mobiusType === '3dv2' && (
+                      <div className="flex flex-wrap justify-center gap-2 mt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (mobiusRef.current && mobiusRef.current.material instanceof THREE.MeshStandardMaterial) {
+                              mobiusRef.current.material.wireframe = !mobiusRef.current.material.wireframe;
+                            }
+                          }}
+                          className="text-xs"
+                        >
+                          Toggle Wireframe
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (mobiusRef.current && mobiusRef.current.rotation) {
+                              mobiusRef.current.rotation.set(0, 0, 0);
+                            }
+                          }}
+                          className="text-xs"
+                        >
+                          Reset Rotation
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (mobiusRef.current && mobiusRef.current.material instanceof THREE.MeshStandardMaterial) {
+                              mobiusRef.current.material.metalness = mobiusRef.current.material.metalness < 0.5 ? 0.9 : 0.1;
+                            }
+                          }}
+                          className="text-xs"
+                        >
+                          Toggle Metalness
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
