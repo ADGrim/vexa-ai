@@ -1,23 +1,44 @@
 {
   "name": "vexa-voice-chat",
   "version": "1.0.0",
-  "description": "Voice chat components for React Native and Expo",
+  "description": "Voice chat components for React Native and Expo with advanced AI integration",
   "main": "index.ts",
   "types": "index.ts",
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-native": ">=0.60.0",
-    "expo": ">=45.0.0",
-    "expo-av": ">=11.0.0",
-    "expo-speech-recognition": ">=10.0.0"
+    "expo": ">=49.0.0",
+    "expo-av": ">=13.0.0",
+    "expo-speech": ">=11.0.0",
+    "expo-speech-recognition": ">=11.0.0",
+    "expo-file-system": ">=15.0.0",
+    "openai": "^4.0.0"
   },
   "keywords": [
     "expo",
     "react-native",
     "voice-chat",
     "speech-recognition",
-    "animation"
+    "speech-synthesis",
+    "animation",
+    "ai-assistant",
+    "conversation-memory",
+    "text-to-speech",
+    "voice-recognition"
   ],
-  "author": "Your Name",
-  "license": "MIT"
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "*.js",
+    "*.d.ts",
+    "README.md"
+  ],
+  "author": "Vexa Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/vexa-voice-chat/issues"
+  },
+  "homepage": "https://github.com/yourusername/vexa-voice-chat"
 }

@@ -5,7 +5,7 @@ This package provides voice chat components optimized for React Native and Expo 
 ## Installation
 
 ```bash
-npm install vexa-voice-chat expo-av expo-speech-recognition
+npm install vexa-voice-chat expo-av expo-speech expo-speech-recognition expo-file-system
 ```
 
 ## Required Permissions
@@ -29,6 +29,8 @@ Add these to your `app.json`:
 
 ## Usage
 
+### Voice Recognition
+
 ```jsx
 import { VoiceButton, useVoiceHandler } from 'vexa-voice-chat';
 
@@ -44,6 +46,45 @@ export default function ChatScreen() {
 }
 ```
 
+### Text-to-Speech
+
+```jsx
+import { speakAsNova, stopSpeaking } from 'vexa-voice-chat';
+
+// Speak text with the Nova voice
+speakAsNova("Hello, I'm Nova. How can I assist you today?");
+
+// Check if speaking
+const checkSpeaking = async () => {
+  const speaking = await isSpeaking();
+  console.log('Is speaking:', speaking);
+};
+
+// Stop speech
+const handleStop = () => {
+  stopSpeaking();
+};
+```
+
+### Memory Storage
+
+```jsx
+import { saveMemory, getMemory } from 'vexa-voice-chat';
+
+// Save a conversation
+const saveConversation = async () => {
+  await saveMemory('conversation', JSON.stringify(messages));
+};
+
+// Load a conversation
+const loadConversation = async () => {
+  const savedConversation = await getMemory('conversation');
+  if (savedConversation) {
+    setMessages(JSON.parse(savedConversation));
+  }
+};
+```
+
 ## Components
 
 ### VoiceButton
@@ -52,12 +93,22 @@ A button component that handles voice input with an animated wave effect.
 ### WaveAnimation
 A standalone wave animation component that can be used independently.
 
+### Voice
+Text-to-speech functionality with configurable voice settings.
+
+## Utilities
+
 ### useVoiceHandler
 A hook that provides voice recognition functionality.
 
+### Memory
+Utilities for persistent storage of conversations and settings.
+
 ## Features
 - Voice recognition with Expo's Speech Recognition API
+- Text-to-speech with custom voice configuration
 - Animated wave effect during voice input
+- Persistent storage for conversations and preferences
 - Microphone permission handling
 - TypeScript support
 - Expo-optimized animations
