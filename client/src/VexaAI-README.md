@@ -40,15 +40,17 @@ lib/                 # Core functionality and utilities
 ├── vexaVoice.ts     # Voice synthesis functionality
 ├── vexaSafety.ts    # Safety and content guidelines
 ├── speakMyStyle.ts  # Style adaptation system
+├── AsyncStorageCompatMemory.ts # Web-compatible AsyncStorage implementation
 ├── userTasks.json   # Task and reminder data
 ├── ...              # Other utility functions
 
 expo-components/     # Expo/React Native compatible components
 ├── VoiceButton.tsx  # Voice input button for mobile
 ├── WaveAnimation.tsx # Audio visualization for mobile
-├── Voice.tsx        # Text-to-speech for Expo
-├── memory.ts        # Persistent storage for mobile
-├── ...              # Other mobile components
+├── Voice.tsx             # Text-to-speech for Expo
+├── memory.ts             # FileSystem storage for mobile
+├── AsyncStorageMemory.ts # Alternative storage using AsyncStorage
+├── ...                   # Other mobile components
 
 pages/               # Complete page components
 └── VexaAI.tsx       # Main VexaAI interface
@@ -77,7 +79,11 @@ hooks/               # Custom React hooks
    ```
    expo install expo-speech expo-file-system openai react-native-reanimated
    ```
-3. See the `expo-components/README.md` for detailed integration instructions
+3. For AsyncStorage support (optional):
+   ```
+   expo install @react-native-async-storage/async-storage
+   ```
+4. See the `expo-components/README.md` for detailed integration instructions
 
 ## Usage
 
@@ -107,6 +113,36 @@ function App() {
     />
   );
 }
+```
+
+### Persistent Storage
+VexaAI supports multiple storage options for saving conversations and settings:
+
+#### Web Applications
+```jsx
+// Import web-compatible AsyncStorage implementation
+import { 
+  saveMemory, 
+  getMemory, 
+  loadAllMemory, 
+  forgetMemory, 
+  clearAllMemory 
+} from './lib/AsyncStorageCompatMemory';
+
+// Save user preferences
+await saveMemory('user_settings', { darkMode: true, voiceEnabled: true });
+
+// Load user preferences
+const settings = await getMemory('user_settings');
+
+// Get all conversations
+const allConversations = await loadAllMemory('conversation_');
+
+// Clear specific settings
+await forgetMemory('temp_data');
+
+// Clear all Vexa data
+await clearAllMemory();
 ```
 
 ### Complete Application

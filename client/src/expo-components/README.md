@@ -8,6 +8,11 @@ This package provides voice chat components optimized for React Native and Expo 
 npm install vexa-voice-chat expo-av expo-speech expo-speech-recognition expo-file-system
 ```
 
+For AsyncStorage support (optional, recommended for React Native apps):
+```bash
+npm install @react-native-async-storage/async-storage
+```
+
 ## Required Permissions
 
 Add these to your `app.json`:
@@ -68,6 +73,9 @@ const handleStop = () => {
 
 ### Memory Storage
 
+Two storage options are available:
+
+#### Option 1: FileSystem Storage (Default)
 ```jsx
 import { saveMemory, getMemory } from 'vexa-voice-chat';
 
@@ -83,6 +91,24 @@ const loadConversation = async () => {
     setMessages(JSON.parse(savedConversation));
   }
 };
+```
+
+#### Option 2: AsyncStorage 
+```jsx
+// Import AsyncStorage implementation instead
+import { saveMemory, getMemory, loadAllMemory, clearMemory } from 'vexa-voice-chat/AsyncStorageMemory';
+
+// Save data
+await saveMemory('vexa_settings', JSON.stringify(settings));
+
+// Load data
+const settings = await getMemory('vexa_settings');
+
+// Load all conversations with a specific prefix
+const allConversations = await loadAllMemory('conversation_');
+
+// Clear specific data types
+await clearMemory('temp_');
 ```
 
 ## Components
@@ -108,7 +134,9 @@ Utilities for persistent storage of conversations and settings.
 - Voice recognition with Expo's Speech Recognition API
 - Text-to-speech with custom voice configuration
 - Animated wave effect during voice input
+- Dual storage options: FileSystem or AsyncStorage
 - Persistent storage for conversations and preferences
 - Microphone permission handling
 - TypeScript support
 - Expo-optimized animations
+- Complete example implementation with working UI
