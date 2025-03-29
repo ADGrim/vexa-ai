@@ -1,15 +1,61 @@
 {
   "tasks": [
     {
-      "title": "Call Sarah",
-      "due": "2025-03-28T10:00:00",
-      "note": "Regarding the new project"
+      "id": "task-1",
+      "title": "Morning meditation",
+      "description": "Practice mindfulness for 10 minutes",
+      "isCompleted": false,
+      "priority": "medium",
+      "dueDate": "2025-03-30T09:00:00.000Z",
+      "tags": ["wellness", "morning-routine"]
+    },
+    {
+      "id": "task-2",
+      "title": "Weekly planning session",
+      "description": "Review goals and set priorities for the week",
+      "isCompleted": false,
+      "priority": "high",
+      "dueDate": "2025-03-31T18:00:00.000Z",
+      "tags": ["productivity", "planning"]
+    },
+    {
+      "id": "task-3",
+      "title": "Read book chapter",
+      "description": "Continue reading 'The Psychology of Money'",
+      "isCompleted": false,
+      "priority": "low",
+      "dueDate": "2025-04-01T21:00:00.000Z",
+      "tags": ["personal-development", "reading"]
     }
   ],
   "reminders": [
     {
-      "trigger": "daily at 9am",
-      "message": "Start your daily Vexa review"
+      "id": "reminder-1",
+      "title": "Take medication",
+      "time": "08:00",
+      "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+      "isActive": true
+    },
+    {
+      "id": "reminder-2",
+      "title": "Team meeting",
+      "time": "14:30",
+      "days": ["monday", "wednesday", "friday"],
+      "isActive": true
+    },
+    {
+      "id": "reminder-3",
+      "title": "Evening workout",
+      "time": "18:30",
+      "days": ["monday", "tuesday", "thursday"],
+      "isActive": true
     }
-  ]
+  ],
+  "preferences": {
+    "notificationSound": "gentle-chime",
+    "defaultPriority": "medium",
+    "reminderAdvanceNotice": 10,
+    "dailySummaryTime": "21:00",
+    "theme": "auto"
+  }
 }
