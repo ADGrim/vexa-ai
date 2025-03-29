@@ -1,0 +1,15 @@
+{
+  "tasks": [
+    {
+      "title": "Call Sarah",
+      "due": "2025-03-28T10:00:00",
+      "note": "Regarding the new project"
+    }
+  ],
+  "reminders": [
+    {
+      "trigger": "daily at 9am",
+      "message": "Start your daily Vexa review"
+    }
+  ]
+}

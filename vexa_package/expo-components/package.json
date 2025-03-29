@@ -1,0 +1,23 @@
+{
+  "name": "vexa-voice-chat",
+  "version": "1.0.0",
+  "description": "Voice chat components for React Native and Expo",
+  "main": "index.ts",
+  "types": "index.ts",
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-native": ">=0.60.0",
+    "expo": ">=45.0.0",
+    "expo-av": ">=11.0.0",
+    "expo-speech-recognition": ">=10.0.0"
+  },
+  "keywords": [
+    "expo",
+    "react-native",
+    "voice-chat",
+    "speech-recognition",
+    "animation"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
