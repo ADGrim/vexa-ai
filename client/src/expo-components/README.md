@@ -96,19 +96,46 @@ const loadConversation = async () => {
 #### Option 2: AsyncStorage 
 ```jsx
 // Import AsyncStorage implementation instead
-import { saveMemory, getMemory, loadAllMemory, clearMemory } from 'vexa-voice-chat/AsyncStorageMemory';
+import { saveMemory, getMemory, loadAllMemory, forgetMemory, clearAllMemory } from 'vexa-voice-chat/AsyncStorageMemory';
 
-// Save data
-await saveMemory('vexa_settings', JSON.stringify(settings));
+// Save data (automatically handles JSON.stringify)
+await saveMemory('user_settings', { darkMode: true, voiceEnabled: true });
 
-// Load data
-const settings = await getMemory('vexa_settings');
+// Load data (automatically handles JSON.parse)
+const settings = await getMemory('user_settings');
 
 // Load all conversations with a specific prefix
 const allConversations = await loadAllMemory('conversation_');
 
-// Clear specific data types
-await clearMemory('temp_');
+// Remove specific data
+await forgetMemory('temp_data');
+
+// Clear all Vexa data
+await clearAllMemory();
+```
+
+#### Usage in Application Startup
+
+```jsx
+import { useEffect } from 'react';
+import { saveMemory, getMemory } from './utils/memory';
+
+export default function App() {
+  useEffect(() => {
+    const boot = async () => {
+      const mood = await getMemory('user-mood');
+      if (!mood) {
+        await saveMemory('user-mood', 'curious');
+      }
+    };
+
+    boot();
+  }, []);
+
+  return (
+    // your app...
+  );
+}
 ```
 
 ## Components

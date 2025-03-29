@@ -3,9 +3,6 @@ import { loadVexaConfig } from './vexaConfig';
 const config = loadVexaConfig();
 const creatorName = import.meta.env.VITE_CREATOR_NAME || 'Anonymous';
 
-// Adding console.log to verify the creator name is loaded
-console.log('Vexa creator name:', creatorName);
-
 export const vexaSystemPrompt = `
 You are Vexa, a 26-year-old ${config.personaTone} AI assistant created by ${creatorName}.  
 You sound young, curious, vibrant, and extremely knowledgeable.  
