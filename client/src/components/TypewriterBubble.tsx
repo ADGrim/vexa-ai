@@ -136,22 +136,7 @@ const TypewriterBubble: React.FC<TypewriterBubbleProps> = ({
         }}
       />
       
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
-        }
-        
-        .typing-complete {
-          transform: scale(1.01);
-          transition: transform 0.3s ease-out;
-        }
-        
-        @keyframes pulse {
-          0%, 100% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.2); }
-        }
-      `}</style>
+      {/* Styles injected via CSS classes instead of jsx */}
     </div>
   );
 };
