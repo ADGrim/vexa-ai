@@ -5,13 +5,18 @@ This package provides voice chat components optimized for React Native and Expo 
 ## Installation
 
 ```bash
-npm install vexa-voice-chat expo-av expo-speech expo-speech-recognition expo-file-system
+npm install vexa-voice-chat expo-av@~14.0.2 expo-speech@~12.4.0
 ```
 
 For AsyncStorage support (optional, recommended for React Native apps):
 ```bash
 npm install @react-native-async-storage/async-storage
 ```
+
+### Compatible Versions
+- Expo: 52.0.3+
+- React Native: 0.73.6+
+- React: 18.2.0+
 
 ## Required Permissions
 
@@ -138,6 +143,75 @@ export default function App() {
 }
 ```
 
+### WebSocket Integration
+
+For real-time communication with an AI server:
+
+```jsx
+import { useEffect, useState } from 'react';
+import { connectWebSocket, sendMessage } from 'vexa-voice-chat/websocket';
+
+export default function VexaChat() {
+  const [messages, setMessages] = useState([]);
+  const [isConnected, setIsConnected] = useState(false);
+  
+  useEffect(() => {
+    // Connect to the WebSocket server
+    const ws = connectWebSocket({
+      onOpen: () => setIsConnected(true),
+      onClose: () => setIsConnected(false),
+      onMessage: (data) => {
+        if (data.type === 'chat' && data.role === 'assistant') {
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            content: data.content 
+          }]);
+        }
+      }
+    });
+    
+    return () => {
+      // Clean up the connection
+      if (ws) ws.close();
+    };
+  }, []);
+  
+  const handleSendMessage = (text) => {
+    // Send a message to the server
+    sendMessage({ type: 'chat', content: text });
+    
+    // Add the user message to the UI
+    setMessages(prev => [...prev, { 
+      role: 'user', 
+      content: text 
+    }]);
+  };
+  
+  return (
+    <View>
+      {/* Messages */}
+      {messages.map((msg, i) => (
+        <ChatBubble 
+          key={i}
+          text={msg.content}
+          isUser={msg.role === 'user'}
+        />
+      ))}
+      
+      {/* Connection indicator */}
+      {!isConnected && (
+        <Text style={styles.errorText}>
+          Disconnected from server
+        </Text>
+      )}
+      
+      {/* Input */}
+      <VoiceButton onTranscript={handleSendMessage} />
+    </View>
+  );
+}
+```
+
 ## Components
 
 ### VoiceButton
@@ -159,6 +233,22 @@ import { MobiusStrip } from 'vexa-voice-chat';
 {isLoading && <MobiusStrip />}
 ```
 
+### MobiusLoader
+A simplified loading animation inspired by a Möbius strip, using a dashed circular border animation.
+
+```jsx
+import { MobiusLoader } from 'vexa-voice-chat';
+
+// Use as a compact loading indicator
+<MobiusLoader />
+
+// With custom size and color
+<MobiusLoader 
+  size={80}  // Default is 100
+  color="#a855f7" // Default is purple
+/>
+```
+
 ### Voice
 Text-to-speech functionality with configurable voice settings.
 
@@ -171,12 +261,15 @@ A hook that provides voice recognition functionality.
 Utilities for persistent storage of conversations and settings.
 
 ## Features
-- Voice recognition with Expo's Speech Recognition API
+- Voice recognition with Expo's Speech API
 - Text-to-speech with custom voice configuration
 - Animated wave effect during voice input
 - Dual storage options: FileSystem or AsyncStorage
 - Persistent storage for conversations and preferences
 - Microphone permission handling
+- Real-time communication via WebSockets
+- Multiple visual loading animations (MobiusStrip, MobiusLoader)
 - TypeScript support
 - Expo-optimized animations
 - Complete example implementation with working UI
+- Compatible with the latest Expo 52.0.3 and React Native 0.73.6

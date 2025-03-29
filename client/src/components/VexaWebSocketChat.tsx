@@ -3,6 +3,7 @@ import TypewriterBubble from './TypewriterBubble';
 import WaveButton from './WaveButton';
 import { ChatInputBar } from './ChatInputBar';
 import { VexaVoiceButton } from './VexaVoiceButton';
+import MobiusLoader from './effects/MobiusLoader';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -37,18 +38,18 @@ export function VexaWebSocketChat({ className = '' }: VexaWebSocketChatProps) {
         },
         
         onMessage: (data) => {
-          if (data.type === 'message') {
+          if (data.type === 'typing') {
             // Show typing animation
             setIsTyping(true);
-            
-            // Add message after a small delay to simulate typing
-            setTimeout(() => {
-              setMessages(prev => [...prev, { 
-                role: data.role || 'assistant', 
-                content: data.content 
-              }]);
-              setIsTyping(false);
-            }, 500);
+          } else if (data.type === 'typing_stop') {
+            // Hide typing animation
+            setIsTyping(false);
+          } else if (data.type === 'message') {
+            // Add the message to the conversation
+            setMessages(prev => [...prev, { 
+              role: data.role || 'assistant', 
+              content: data.content 
+            }]);
           }
         },
         
@@ -126,10 +127,11 @@ export function VexaWebSocketChat({ className = '' }: VexaWebSocketChatProps) {
         ))}
         
         {isTyping && (
-          <div className="flex space-x-2 p-3 bg-gray-800 rounded-lg max-w-[80%] animate-pulse">
-            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+          <div className="flex items-center space-x-3 p-4 bg-gray-800/60 backdrop-blur-md rounded-lg max-w-[80%] border border-purple-500/20">
+            <div className="text-white/70 text-sm">Vexa is thinking...</div>
+            <div className="ml-2">
+              <MobiusLoader size={32} color="#a855f7" />
+            </div>
           </div>
         )}
         

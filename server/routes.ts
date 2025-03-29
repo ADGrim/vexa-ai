@@ -45,11 +45,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (message.type === 'message') {
           console.log('Received message:', message.content);
           
+          // Send typing indicator
+          if (ws.readyState === WebSocket.OPEN) {
+            const typingIndicator: WebSocketMessage = {
+              type: 'typing',
+              content: 'Vexa is thinking...',
+              role: 'assistant'
+            };
+            ws.send(JSON.stringify(typingIndicator));
+          }
+          
+          // Add a small delay to allow the typing indicator to display
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
           // Process message and generate response
           const response = await processUserMessage(message.content);
           
           // Send response if the connection is still open
           if (ws.readyState === WebSocket.OPEN) {
+            // First, send a stop typing indicator
+            const stopTypingIndicator: WebSocketMessage = {
+              type: 'typing_stop',
+              content: '',
+              role: 'assistant'
+            };
+            ws.send(JSON.stringify(stopTypingIndicator));
+            
+            // Then send the actual response
             const responseMessage: WebSocketMessage = {
               type: 'message',
               role: 'assistant',

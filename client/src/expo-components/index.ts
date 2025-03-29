@@ -30,6 +30,7 @@ export {
 
 // Visual effects and visualizations
 export { MobiusStrip } from './MobiusStrip';
+export { default as MobiusLoader } from './MobiusLoader';
 
 // Text-to-speech
 export { speakAsNova, isSpeaking, stopSpeaking, getAvailableVoices } from './Voice';
@@ -40,3 +41,13 @@ export { default as VexaChatScreen } from './ExampleIntegration';
 // Alternative storage implementations
 import * as AsyncStorageMemory from './AsyncStorageMemory';
 export { AsyncStorageMemory };
+
+// WebSocket utilities for real-time communication
+export {
+  connectWebSocket,
+  sendMessage,
+  closeWebSocket,
+  isWebSocketConnected,
+  createPingService,
+  type WebSocketMessage
+} from './websocket';

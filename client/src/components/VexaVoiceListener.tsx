@@ -4,6 +4,7 @@ import { SidebarWaveIcon } from "./SidebarWaveIcon";
 import { useToast } from "@/hooks/use-toast";
 import useVoiceHandler from '@/hooks/useVoiceHandler';
 import MobiusStrip from '@/components/effects/MobiusStrip';
+import MobiusLoader from '@/components/effects/MobiusLoader';
 import { getVoiceVolumeAnalyzer } from '@/lib/voiceVolume';
 
 interface VexaVoiceListenerProps {
@@ -97,9 +98,17 @@ const VexaVoiceListener: React.FC<VexaVoiceListenerProps> = ({
   return (
     <div className="relative">
       {listening && (
-        <div className="absolute -top-8 -left-4 z-10">
-          <MobiusStrip volume={volume} size="sm" color="#9c27b0" />
-        </div>
+        <>
+          {/* MobiusStrip for volume visualization */}
+          <div className="absolute -top-10 -left-6 z-10">
+            <MobiusStrip volume={volume} size="sm" color="#9c27b0" />
+          </div>
+          
+          {/* MobiusLoader for additional visual feedback */}
+          <div className="absolute -top-6 -right-6 z-10">
+            <MobiusLoader size={24} color="#8855ff" />
+          </div>
+        </>
       )}
       <Button
         onClick={listening ? stopListening : handleVoiceStart}

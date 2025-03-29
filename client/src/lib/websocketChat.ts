@@ -3,7 +3,7 @@
  * Can be used in both web and React Native applications
  */
 
-export type MessageType = 'message' | 'error' | 'ping' | 'typing';
+export type MessageType = 'message' | 'error' | 'ping' | 'typing' | 'typing_stop';
 
 export interface WebSocketMessage {
   type: MessageType;

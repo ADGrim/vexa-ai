@@ -1,12 +1,13 @@
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { VexaVoiceButton } from "./VexaVoiceButton";
+import MobiusLoader from './effects/MobiusLoader';
 
 interface ChatInputBarProps {
   value: string;
@@ -68,15 +69,23 @@ export function ChatInputBar({
         </Tooltip>
 
         {/* Text input */}
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <textarea
             ref={inputRef}
-            className="w-full min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-base bg-white/5 border-none focus:ring-2 focus:ring-purple-500/30 resize-none overflow-hidden text-white placeholder-white/40"
-            placeholder="Type your message..."
+            className={`w-full min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-base bg-white/5 border-none focus:ring-2 focus:ring-purple-500/30 resize-none overflow-hidden text-white placeholder-white/40 ${
+              isTyping ? 'pr-12' : ''
+            }`}
+            placeholder={isTyping ? "Vexa is thinking..." : "Type your message..."}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyPress}
+            disabled={isTyping}
           />
+          {isTyping && (
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <MobiusLoader size={24} color="#9333ea" />
+            </div>
+          )}
         </div>
 
         {/* Send button */}
@@ -86,7 +95,11 @@ export function ChatInputBar({
           variant="ghost"
           disabled={!value.trim() || isTyping}
         >
-          <Send className="w-6 h-6 text-purple-500" />
+          {isTyping ? (
+            <Loader2 className="w-6 h-6 text-purple-500/50 animate-spin" />
+          ) : (
+            <Send className="w-6 h-6 text-purple-500" />
+          )}
         </Button>
       </div>
     </div>
