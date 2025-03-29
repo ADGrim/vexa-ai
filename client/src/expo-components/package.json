@@ -1,7 +1,7 @@
 {
-  "name": "vexa-voice-chat",
+  "name": "vexa-expo-components",
   "version": "1.0.0",
-  "description": "Voice chat components for React Native and Expo with advanced AI integration",
+  "description": "Advanced AI voice chat and visualization components for React Native and Expo applications",
   "main": "index.ts",
   "types": "index.ts",
   "peerDependencies": {
@@ -12,7 +12,8 @@
     "expo-speech": ">=11.0.0",
     "expo-speech-recognition": ">=11.0.0",
     "expo-file-system": ">=15.0.0",
-    "openai": "^4.0.0"
+    "openai": "^4.0.0",
+    "three": ">=0.157.0"
   },
   "optionalPeerDependencies": {
     "@react-native-async-storage/async-storage": ">=1.17.0"
@@ -25,11 +26,16 @@
     "speech-synthesis",
     "animation",
     "ai-assistant",
+    "vexa",
+    "mobius-strip",
+    "wave-animation",
     "conversation-memory",
     "text-to-speech",
     "voice-recognition",
     "async-storage",
-    "persistent-storage"
+    "persistent-storage",
+    "3d-visualization",
+    "gpt-4"
   ],
   "scripts": {
     "build": "tsc",
@@ -38,12 +44,18 @@
   "files": [
     "*.js",
     "*.d.ts",
+    "*.tsx",
+    "*.ts", 
     "README.md"
   ],
   "author": "Vexa Team",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/yourusername/vexa-voice-chat/issues"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vexa-ai/vexa-expo-components"
   },
-  "homepage": "https://github.com/yourusername/vexa-voice-chat"
+  "bugs": {
+    "url": "https://github.com/vexa-ai/vexa-expo-components/issues"
+  },
+  "homepage": "https://vexa-ai.github.io/expo-components"
 }
