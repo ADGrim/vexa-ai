@@ -1,0 +1,1 @@
+// Daily inspirational quotes list

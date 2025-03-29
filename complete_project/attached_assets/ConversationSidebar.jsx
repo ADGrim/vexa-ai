@@ -1,0 +1,1 @@
+// Collapsible conversation sidebar component

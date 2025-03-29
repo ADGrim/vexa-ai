@@ -1,0 +1,86 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { PaperPlaneIcon, SmileIcon, Volume2Icon, SlidersHorizontal } from "lucide-react";
+import { Switch } from "@/components/ui/switch"; // if you’re using a switch UI component
+
+const ChatInputBar = ({ onSend, isTyping, suggestions }) => {
+  const [input, setInput] = useState("");
+  const [vexaVoice, setVexaVoice] = useState(false);
+  const [speakStyle, setSpeakStyle] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "40px";
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [input]);
+
+  const handleSend = () => {
+    if (input.trim() !== "") {
+      onSend(input, { vexaVoice, speakStyle });
+      setInput("");
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="w-full p-3 border-t bg-white sticky bottom-0 shadow-xl">
+      {isTyping && (
+        <div className="text-sm text-gray-500 mb-2 animate-pulse pl-2">
+          Vexa is typing...
+        </div>
+      )}
+
+      {input.trim() === "" && suggestions?.length > 0 && (
+        <div className="flex gap-2 mb-3 flex-wrap">
+          {suggestions.map((suggestion, index) => (
+            <button
+              key={index}
+              onClick={() => setInput(suggestion)}
+              className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3 mb-2">
+        <Switch checked={vexaVoice} onCheckedChange={setVexaVoice} />
+        <Volume2Icon className="w-5 h-5 text-gray-600" />
+        <span className="text-sm text-gray-500">Vexa Voice</span>
+
+        <Switch checked={speakStyle} onCheckedChange={setSpeakStyle} className="ml-4" />
+        <SlidersHorizontal className="w-5 h-5 text-gray-600" />
+        <span className="text-sm text-gray-500">Speak My Style</span>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="flex-1 relative">
+          <textarea
+            ref={inputRef}
+            className="w-full min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-base border border-gray-300 shadow-inner focus-visible:ring-2 focus-visible:ring-blue-400 resize-none overflow-hidden"
+            placeholder="Type a message..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyPress}
+          />
+        </div>
+        <button
+          onClick={handleSend}
+          className="rounded-full p-2 hover:bg-blue-100 transition"
+        >
+          <PaperPlaneIcon className="w-6 h-6 text-blue-500" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ChatInputBar;
