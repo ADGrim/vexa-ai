@@ -3,6 +3,9 @@ export { useVoiceHandler } from './VoiceHandler';
 export { WaveAnimation } from './WaveAnimation';
 export { VoiceButton } from './VoiceButton';
 
+// Visual effects
+export { MobiusStrip } from './MobiusStrip';
+
 // Storage implementations
 export { saveMemory, loadMemory, getMemory } from './memory';
 

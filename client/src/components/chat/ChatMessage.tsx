@@ -14,7 +14,7 @@ interface ChatMessageProps {
 export function ChatMessage({ messages, isSpeaking }: ChatMessageProps) {
   return (
     <motion.div 
-      className="flex flex-col space-y-4 p-4"
+      className="flex flex-col space-y-6 p-6 pb-24"
       initial="hidden"
       animate="visible"
       variants={{
@@ -28,12 +28,19 @@ export function ChatMessage({ messages, isSpeaking }: ChatMessageProps) {
       }}
     >
       {messages.map((msg, index) => (
-        <ChatBubble 
+        <motion.div
           key={index}
-          message={msg.text}
-          isAI={msg.sender === "ai"}
-          isSpeaking={msg.sender === "ai" && isSpeaking}
-        />
+          className="w-full"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <ChatBubble 
+            message={msg.text}
+            isAI={msg.sender === "ai"}
+            isSpeaking={msg.sender === "ai" && isSpeaking}
+          />
+        </motion.div>
       ))}
     </motion.div>
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { useVoiceHandler } from '@/hooks/useVoiceHandler';
 import WaveButton from './WaveButton';
+import { MobiusStrip } from '@/components/effects/MobiusStrip';
 
 interface VexaVoiceButtonProps {
   onTranscript: (text: string) => void;
@@ -44,6 +45,11 @@ export function VexaVoiceButton({ onTranscript, className = '' }: VexaVoiceButto
 
   return (
     <div className="relative">
+      {listening && (
+        <div className="absolute -top-10 -left-2 z-10 opacity-80">
+          <MobiusStrip size="sm" color="primary" />
+        </div>
+      )}
       <WaveButton
         onClick={handleClick}
         listening={listening}

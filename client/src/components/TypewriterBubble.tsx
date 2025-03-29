@@ -33,20 +33,34 @@ const TypewriterBubble: React.FC<TypewriterBubbleProps> = ({
   }, [currentIndex, text]);
 
   return (
-    <div
-      className={`
-        w-full max-w-[85%] p-6 rounded-xl shadow-sm bubble-pop
-        ${isUser 
-          ? 'bg-blue-500 text-white rounded-br-none ml-auto' 
-          : `${colorScheme || 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'} rounded-bl-none mr-auto`}
-      `}
-    >
-      <div className="bubble-content">
-        <span>{displayedText}</span>
-        {currentIndex < text.length && (
-          <span className="blinking-cursor ml-[2px] inline-block w-[2px] h-[1em] bg-current align-middle animate-blink">|</span>
-        )}
+    <div className="relative">
+      <div
+        className={`
+          w-full max-w-[85%] p-6 rounded-3xl shadow-md backdrop-blur-sm border border-white/10 
+          ${isUser 
+            ? 'bg-gradient-to-r from-emerald-500/90 to-teal-500/90 text-white ml-auto' 
+            : `${colorScheme || 'bg-gradient-to-r from-blue-600/90 to-purple-600/90 text-white'} mr-auto`}
+        `}
+        style={{
+          boxShadow: isUser ? 
+            "0 0 20px rgba(16, 185, 129, 0.3)" : 
+            "0 0 20px rgba(147, 51, 234, 0.3)",
+          borderRadius: "24px"
+        }}
+      >
+        <div className="bubble-content">
+          <span className="text-white font-light">{displayedText}</span>
+          {currentIndex < text.length && (
+            <span className="blinking-cursor ml-[2px] inline-block w-[2px] h-[1em] bg-current align-middle animate-blink">|</span>
+          )}
+        </div>
       </div>
+      
+      <div 
+        className={`absolute w-4 h-4 rounded-full ${
+          isUser ? "-right-1.5 top-1 bg-emerald-500/80" : "-left-1.5 top-1 bg-purple-500/80"
+        }`}
+      />
     </div>
   );
 };

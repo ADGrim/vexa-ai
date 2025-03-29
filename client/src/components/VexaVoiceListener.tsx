@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarWaveIcon } from "./SidebarWaveIcon";
 import { useToast } from "@/hooks/use-toast";
 import useVoiceHandler from '@/hooks/useVoiceHandler';
+import { MobiusStrip } from '@/components/effects/MobiusStrip';
 
 interface VexaVoiceListenerProps {
   onVexaRespond: (speech: string) => Promise<string>;
@@ -15,32 +16,29 @@ const VexaVoiceListener: React.FC<VexaVoiceListenerProps> = ({
   onListeningChange,
   isEnabled 
 }) => {
-  const { transcript, isListening, startListening } = useVoiceHandler();
   const { toast } = useToast();
-
-  useEffect(() => {
-    onListeningChange?.(isListening);
-  }, [isListening, onListeningChange]);
-
-  useEffect(() => {
-    if (transcript && !isListening) {
-      handleTranscript(transcript);
-    }
-  }, [transcript, isListening]);
-
-  const handleTranscript = async (text: string) => {
-    try {
-      const response = await onVexaRespond(text);
-      console.log("Vexa response:", response);
-    } catch (error) {
-      console.error("Error getting AI response:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Sorry, I couldn't process that. Please try again."
-      });
+  
+  const handleRecognizedSpeech = async (text: string) => {
+    if (text.trim()) {
+      try {
+        const response = await onVexaRespond(text);
+        console.log("Vexa response:", response);
+      } catch (error) {
+        console.error("Error getting AI response:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Sorry, I couldn't process that. Please try again."
+        });
+      }
     }
   };
+  
+  const { startListening, stopListening, listening } = useVoiceHandler(handleRecognizedSpeech);
+
+  useEffect(() => {
+    onListeningChange?.(listening);
+  }, [listening, onListeningChange]);
 
   const handleVoiceStart = async () => {
     if (!isEnabled) {
@@ -74,16 +72,23 @@ const VexaVoiceListener: React.FC<VexaVoiceListenerProps> = ({
   };
 
   return (
-    <Button
-      onClick={handleVoiceStart}
-      className={`rounded-full p-2 transition-all duration-200 ${
-        isListening ? 'bg-purple-500/20 text-purple-400 animate-pulse' : 'hover:bg-white/5'
-      }`}
-      variant="ghost"
-      disabled={isListening || !isEnabled}
-    >
-      <SidebarWaveIcon className={isListening ? 'animate-pulse' : ''} />
-    </Button>
+    <div className="relative">
+      {listening && (
+        <div className="absolute -top-8 -left-4 z-10">
+          <MobiusStrip size="sm" color="primary" />
+        </div>
+      )}
+      <Button
+        onClick={handleVoiceStart}
+        className={`rounded-full p-2 transition-all duration-200 ${
+          listening ? 'bg-purple-500/20 text-purple-400' : 'hover:bg-white/5'
+        }`}
+        variant="ghost"
+        disabled={listening || !isEnabled}
+      >
+        <SidebarWaveIcon className={listening ? 'animate-pulse' : ''} />
+      </Button>
+    </div>
   );
 };
 

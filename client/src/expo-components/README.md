@@ -146,6 +146,19 @@ A button component that handles voice input with an animated wave effect.
 ### WaveAnimation
 A standalone wave animation component that can be used independently.
 
+### MobiusStrip
+An animated Möbius strip (infinity-like) rotating animation with customizable styles.
+
+```jsx
+import { MobiusStrip } from 'vexa-voice-chat';
+
+// Use as a voice listening indicator
+{voiceListening && <MobiusStrip />}
+
+// Or as a loading indicator
+{isLoading && <MobiusStrip />}
+```
+
 ### Voice
 Text-to-speech functionality with configurable voice settings.
 

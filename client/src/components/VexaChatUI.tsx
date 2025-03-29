@@ -1,5 +1,7 @@
 import React from 'react';
 import { TypingIndicator } from './TypingIndicator';
+import { ChatMessage } from './chat/ChatMessage';
+import { ChatInputBar } from './ChatInputBar';
 
 interface Message {
   text: string;
@@ -21,47 +23,35 @@ export default function VexaChatUI({
   onSendMessage,
   isSpeaking
 }: VexaChatUIProps) {
+  const suggestedQuestions = [
+    "Tell me about yourself",
+    "What can you help me with?",
+    "How does voice chat work?",
+    "Show me something interesting"
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col justify-between p-4 text-white">
-      <div className="overflow-y-auto flex-grow space-y-4">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`${
-              msg.sender === "user"
-                ? "bg-[#5b2c6f] ml-auto"
-                : "bg-[#1c1c1c]"
-            } text-white p-3 rounded-xl w-fit shadow-xl max-w-xs`}
-          >
-            {msg.text}
-          </div>
-        ))}
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex flex-col justify-between text-white">
+      <div className="overflow-y-auto flex-grow pb-20">
+        <ChatMessage 
+          messages={messages} 
+          isSpeaking={isSpeaking} 
+        />
         {isSpeaking && (
-          <div className="mx-auto mt-8">
+          <div className="mx-auto my-4 flex justify-center">
             <TypingIndicator />
           </div>
         )}
       </div>
-      <div className="mt-4 flex items-center space-x-2">
-        <input
-          type="text"
+      
+      <div className="sticky bottom-0 w-full">
+        <ChatInputBar
           value={input}
-          onChange={(e) => onInputChange(e.target.value)}
-          placeholder="Type your message..."
-          className="flex-grow p-3 rounded-full bg-gray-800 border-none focus:ring-2 focus:ring-purple-600 placeholder-gray-400"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              onSendMessage();
-            }
-          }}
+          onChange={onInputChange}
+          onSubmit={onSendMessage}
+          isTyping={isSpeaking}
+          suggestions={messages.length === 0 ? suggestedQuestions : []}
         />
-        <button
-          onClick={onSendMessage}
-          className="bg-gradient-to-r from-purple-500 to-blue-500 p-3 rounded-full hover:opacity-80 transition shadow-md"
-        >
-          Send
-        </button>
       </div>
     </div>
   );
