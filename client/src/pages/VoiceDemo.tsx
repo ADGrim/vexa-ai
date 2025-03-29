@@ -4,6 +4,7 @@ import VoiceVisualizer from '@/components/VoiceVisualizer';
 import TypewriterBubble from '@/components/TypewriterBubble';
 import WaveButton from '@/components/WaveButton';
 import MobiusStrip from '@/components/effects/MobiusStrip';
+import ThreeMobiusStrip from '@/components/effects/ThreeMobiusStrip';
 import useMicVolume from '@/hooks/useMicVolume';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,6 +15,7 @@ export default function VoiceDemo() {
   const volume = useMicVolume(simulationMode);
   const [listening, setListening] = useState(false);
   const [activeDemoTab, setActiveDemoTab] = useState('visualizer');
+  const [mobiusType, setMobiusType] = useState<'2d' | '3d'>('3d');
   
   const demoText = "This is a demonstration of the futuristic chat interface with circular message bubbles, gradient backgrounds, and interactive voice visualizations. Vexa's advanced multimodal AI capabilities are displayed through dynamic animations and responsive UI elements.";
   
@@ -115,6 +117,7 @@ export default function VoiceDemo() {
               <TabsTrigger value="visualizer">Voice Visualizer</TabsTrigger>
               <TabsTrigger value="bubbles">Chat Bubbles</TabsTrigger>
               <TabsTrigger value="typewriter">Typewriter Effect</TabsTrigger>
+              <TabsTrigger value="mobius">3D Mobius Strip</TabsTrigger>
             </TabsList>
             
             <TabsContent value="visualizer" className="mt-6">
@@ -201,6 +204,57 @@ export default function VoiceDemo() {
                         isUser={false}
                         typingSpeed="fast"
                       />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="mobius" className="mt-6">
+              <Card className="bg-black/40 border-white/10 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>3D Mobius Strip</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Advanced 3D visualization with Three.js
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="py-8">
+                  <div className="flex flex-col items-center space-y-6">
+                    <div className="flex space-x-4 justify-center">
+                      <Button 
+                        variant={mobiusType === '2d' ? 'default' : 'outline'}
+                        onClick={() => setMobiusType('2d')}
+                        className="w-32"
+                      >
+                        2D Canvas
+                      </Button>
+                      <Button 
+                        variant={mobiusType === '3d' ? 'default' : 'outline'}
+                        onClick={() => setMobiusType('3d')}
+                        className="w-32"
+                      >
+                        3D WebGL
+                      </Button>
+                    </div>
+                    
+                    <div className="flex justify-center py-4">
+                      {mobiusType === '2d' ? (
+                        <div className="transform scale-150">
+                          <MobiusStrip volume={volume} color="#6d28d9" size="lg" />
+                        </div>
+                      ) : (
+                        <ThreeMobiusStrip 
+                          volume={volume} 
+                          size={240} 
+                          color="#6d28d9" 
+                        />
+                      )}
+                    </div>
+                    
+                    <div className="text-center text-sm text-gray-400 max-w-lg">
+                      <p>This Mobius strip visualization reacts to voice input volume. The rotation speed, 
+                      glow intensity, and opacity all change based on voice activity.</p>
+                      <p className="mt-2">Try adjusting the volume slider above to see the effect.</p>
                     </div>
                   </div>
                 </CardContent>
