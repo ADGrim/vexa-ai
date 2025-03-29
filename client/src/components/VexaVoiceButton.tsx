@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { useVoiceHandler } from '@/hooks/useVoiceHandler';
 import WaveButton from './WaveButton';
-import { MobiusStrip } from '@/components/effects/MobiusStrip';
+import MobiusStrip from '@/components/effects/MobiusStrip';
+import { getVoiceVolumeAnalyzer } from '@/lib/voiceVolume';
 
 interface VexaVoiceButtonProps {
   onTranscript: (text: string) => void;
@@ -11,10 +12,35 @@ interface VexaVoiceButtonProps {
 
 export function VexaVoiceButton({ onTranscript, className = '' }: VexaVoiceButtonProps) {
   const { toast } = useToast();
+  const [volume, setVolume] = useState(0.3);
+  const volumeAnalyzerRef = useRef<ReturnType<typeof getVoiceVolumeAnalyzer> | null>(null);
+  
   const { startListening, stopListening, listening } = useVoiceHandler((text) => {
     console.log('VexaVoiceButton received transcript:', text);
     onTranscript(text);
   });
+  
+  useEffect(() => {
+    if (listening) {
+      // Initialize and start voice volume detection
+      volumeAnalyzerRef.current = getVoiceVolumeAnalyzer({
+        onVolumeChange: (newVolume) => {
+          setVolume(newVolume);
+        }
+      });
+      
+      volumeAnalyzerRef.current.start();
+    } else if (volumeAnalyzerRef.current) {
+      // Clean up when not listening
+      volumeAnalyzerRef.current.stop();
+    }
+    
+    return () => {
+      if (volumeAnalyzerRef.current) {
+        volumeAnalyzerRef.current.stop();
+      }
+    };
+  }, [listening]);
 
   const handleClick = async () => {
     if (listening) {
@@ -47,7 +73,7 @@ export function VexaVoiceButton({ onTranscript, className = '' }: VexaVoiceButto
     <div className="relative">
       {listening && (
         <div className="absolute -top-10 -left-2 z-10 opacity-80">
-          <MobiusStrip size="sm" color="primary" />
+          <MobiusStrip volume={volume} size="sm" color="#9c27b0" />
         </div>
       )}
       <WaveButton

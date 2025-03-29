@@ -6,6 +6,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.wave-button-container.active {
+  transform: scale(1.1);
 }
 
 .wave {
@@ -30,6 +35,34 @@
   width: 40px;
   height: 40px;
   color: white;
+  z-index: 2;
+}
+
+.mobius-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Animation for the MobiusStrip container */
+@keyframes appear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.mobius-container {
+  animation: appear 0.3s ease-out forwards;
 }
 
 @keyframes pulse {

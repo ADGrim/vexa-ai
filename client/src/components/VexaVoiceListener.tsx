@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { SidebarWaveIcon } from "./SidebarWaveIcon";
 import { useToast } from "@/hooks/use-toast";
 import useVoiceHandler from '@/hooks/useVoiceHandler';
-import { MobiusStrip } from '@/components/effects/MobiusStrip';
+import MobiusStrip from '@/components/effects/MobiusStrip';
+import { getVoiceVolumeAnalyzer } from '@/lib/voiceVolume';
 
 interface VexaVoiceListenerProps {
   onVexaRespond: (speech: string) => Promise<string>;
@@ -17,6 +18,8 @@ const VexaVoiceListener: React.FC<VexaVoiceListenerProps> = ({
   isEnabled 
 }) => {
   const { toast } = useToast();
+  const [volume, setVolume] = useState(0.3);
+  const volumeAnalyzerRef = useRef<ReturnType<typeof getVoiceVolumeAnalyzer> | null>(null);
   
   const handleRecognizedSpeech = async (text: string) => {
     if (text.trim()) {
@@ -38,6 +41,26 @@ const VexaVoiceListener: React.FC<VexaVoiceListenerProps> = ({
 
   useEffect(() => {
     onListeningChange?.(listening);
+    
+    if (listening) {
+      // Initialize and start voice volume detection
+      volumeAnalyzerRef.current = getVoiceVolumeAnalyzer({
+        onVolumeChange: (newVolume) => {
+          setVolume(newVolume);
+        }
+      });
+      
+      volumeAnalyzerRef.current.start();
+    } else if (volumeAnalyzerRef.current) {
+      // Clean up when not listening
+      volumeAnalyzerRef.current.stop();
+    }
+    
+    return () => {
+      if (volumeAnalyzerRef.current) {
+        volumeAnalyzerRef.current.stop();
+      }
+    };
   }, [listening, onListeningChange]);
 
   const handleVoiceStart = async () => {
@@ -75,19 +98,24 @@ const VexaVoiceListener: React.FC<VexaVoiceListenerProps> = ({
     <div className="relative">
       {listening && (
         <div className="absolute -top-8 -left-4 z-10">
-          <MobiusStrip size="sm" color="primary" />
+          <MobiusStrip volume={volume} size="sm" color="#9c27b0" />
         </div>
       )}
       <Button
-        onClick={handleVoiceStart}
+        onClick={listening ? stopListening : handleVoiceStart}
         className={`rounded-full p-2 transition-all duration-200 ${
           listening ? 'bg-purple-500/20 text-purple-400' : 'hover:bg-white/5'
         }`}
         variant="ghost"
-        disabled={listening || !isEnabled}
+        disabled={!isEnabled}
       >
         <SidebarWaveIcon className={listening ? 'animate-pulse' : ''} />
       </Button>
+      {listening && (
+        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 text-xs text-white/70">
+          Tap to stop
+        </div>
+      )}
     </div>
   );
 };
